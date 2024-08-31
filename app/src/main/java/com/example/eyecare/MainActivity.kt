@@ -4,8 +4,11 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import com.example.eyecare.Opto.homeOpto
 import com.example.eyecare.WelcomeHome.LoginScreen
 import com.example.eyecare.WelcomeHome.homeScreen
+import com.example.eyecare.WelcomeHome.signUpScreen
+import com.example.eyecare.topBar.topBarId
 import com.example.eyecare.ui.theme.EyeCareTheme
 
 class MainActivity : ComponentActivity() {
@@ -14,7 +17,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             EyeCareTheme {
-                LoginScreen()
+                homeOpto()
             }
         }
     }

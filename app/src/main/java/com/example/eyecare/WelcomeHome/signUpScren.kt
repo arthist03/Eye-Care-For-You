@@ -1,7 +1,6 @@
-@file:OptIn(ExperimentalMaterial3Api::class)
-
 package com.example.eyecare.WelcomeHome
 
+import android.provider.ContactsContract.CommonDataKinds.Phone
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -18,7 +17,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
@@ -41,8 +39,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -51,13 +47,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.eyecare.R
-import org.intellij.lang.annotations.JdkConstants.HorizontalAlignment
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LoginScreen() {
+fun signUpScreen() {
     Box(
         modifier = Modifier
-            .fillMaxSize().padding(top = 15.dp)
+            .fillMaxSize()
     ) {
         // Background with circles and gradient
         Canvas(modifier = Modifier.fillMaxSize()) {
@@ -66,35 +62,20 @@ fun LoginScreen() {
 
             drawCircle(
                 brush = Brush.verticalGradient(
-                    colors = listOf(Color(0xFF39A6EE), Color(0xFF39A6EE))
+                    colors = listOf(Color(0xFF39A6EE), Color(0xFF1242E6))
                 ),
                 radius = height / 1.2f,
                 center = Offset(x = width / 2, y = height + 50)
             )
-
-            drawCircle(
-                brush = Brush.verticalGradient(
-                    colors = listOf(Color(0xFF1242E6), Color(0xFF39A6EE))
-                ),
-                radius = height / 1.5f,
-                center = Offset(x = width / 2, y = height - 50)
-            )
-
-            drawCircle(
-                brush = Brush.verticalGradient(
-                    colors = listOf(Color(0xFF000825), Color(0xFF001F8B))
-                ),
-                radius = height / 1.8f,
-                center = Offset(x = width / 2, y = height - 10)
-            )
         }
 
         // Circle behind the back arrow and "Log In" text
-        Canvas(modifier = Modifier
-            .size(200.dp)
-            .offset(x = (-50).dp, y = (-80).dp)
-            .blur(50.dp)
-            .clip(CircleShape)
+        Canvas(
+            modifier = Modifier
+                .size(200.dp)
+                .offset(x = (-50).dp, y = (-80).dp)
+                .blur(50.dp)
+                .clip(CircleShape)
         ) {
             drawCircle(
                 color = Color(0xFF2878EB),
@@ -120,37 +101,37 @@ fun LoginScreen() {
             )
 
             Spacer(modifier = Modifier.width(8.dp))
-            Text(text = "Log In", fontSize = 24.sp)
+            Text(text = "Sign Up", fontSize = 24.sp)
         }
 
-        Row (
+        Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.End
         ) {
             Image(
                 painter = painterResource(id = R.drawable.login),
-                contentDescription ="Side logo",
+                contentDescription = "Side logo",
                 Modifier.size(150.dp)
             )
         }
 
-        Column (
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(30.dp)
-                .offset(y = 450.dp),
+                .offset(y = 250.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-        ){
+        ) {
             // Email TextField
-
             var email by rememberSaveable {
                 mutableStateOf("")
             }
             OutlinedTextField(
                 value = email,
-                onValueChange = {email = it},
+                onValueChange = { email = it },
                 label = { Text("Email") },
                 modifier = Modifier.fillMaxWidth(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                 colors = TextFieldDefaults.outlinedTextFieldColors(
                     focusedBorderColor = Color.White,
                     unfocusedBorderColor = Color.White,
@@ -161,13 +142,13 @@ fun LoginScreen() {
                 )
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
             // Password TextField
             var password by rememberSaveable { mutableStateOf("") }
             OutlinedTextField(
                 value = password,
-                onValueChange = {password = it},
+                onValueChange = { password = it },
                 label = { Text("Password") },
                 modifier = Modifier.fillMaxWidth(),
                 visualTransformation = PasswordVisualTransformation(),
@@ -182,7 +163,69 @@ fun LoginScreen() {
                 )
             )
 
-            Spacer(modifier = Modifier.height(72.dp))
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Password TextField
+            var confirmPasswordVisualTransformation by rememberSaveable { mutableStateOf("") }
+            OutlinedTextField(
+                value = confirmPasswordVisualTransformation,
+                onValueChange = { confirmPasswordVisualTransformation = it },
+                label = { Text("Confirm Password") },
+                modifier = Modifier.fillMaxWidth(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                colors = TextFieldDefaults.outlinedTextFieldColors(
+                    focusedBorderColor = Color.White,
+                    unfocusedBorderColor = Color.White,
+                    containerColor = Color.White,
+                    focusedTextColor = Color.Black,
+                    focusedLabelColor = Color.Black,
+                    unfocusedLabelColor = Color.Black,
+                )
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            var name by rememberSaveable {
+                mutableStateOf("")
+            }
+            OutlinedTextField(
+                value = name,
+                onValueChange = { name = it },
+                label = { Text("Name") },
+                modifier = Modifier.fillMaxWidth(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+                colors = TextFieldDefaults.outlinedTextFieldColors(
+                    focusedBorderColor = Color.White,
+                    unfocusedBorderColor = Color.White,
+                    containerColor = Color.White,
+                    focusedTextColor = Color.Black,
+                    focusedLabelColor = Color.Black,
+                    unfocusedLabelColor = Color.Black
+                )
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            var Phone by rememberSaveable {
+                mutableStateOf("")
+            }
+            OutlinedTextField(
+                value = Phone,
+                onValueChange = { Phone = it },
+                label = { Text("Phone Number") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+                modifier = Modifier.fillMaxWidth(),
+                colors = TextFieldDefaults.outlinedTextFieldColors(
+                    focusedBorderColor = Color.White,
+                    unfocusedBorderColor = Color.White,
+                    containerColor = Color.White,
+                    focusedTextColor = Color.Black,
+                    focusedLabelColor = Color.Black,
+                    unfocusedLabelColor = Color.Black
+                )
+            )
+
+            Spacer(modifier = Modifier.height(40.dp))
 
             ElevatedButton(
                 onClick = { /*TODO*/ },
@@ -196,7 +239,7 @@ fun LoginScreen() {
                 )
             ) {
                 Text(
-                    text = "Log in",
+                    text = "Sign Up",
                     color = Color.White,
                     fontWeight = FontWeight.Bold,
                     fontSize = 20.sp
@@ -208,6 +251,6 @@ fun LoginScreen() {
 
 @Preview
 @Composable
-private fun LoginPrev() {
-    LoginScreen()
+private fun SignUpPreview() {
+    signUpScreen()
 }
