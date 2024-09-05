@@ -18,7 +18,6 @@ class AuthViewModel : ViewModel() {
     private val _authState = MutableLiveData<AuthState>()
     val authState: LiveData<AuthState> = _authState
 
-
     init {
         checkAuthState()
     }
@@ -41,10 +40,34 @@ class AuthViewModel : ViewModel() {
         auth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
-                    _authState.value = AuthState.Authenticated
+                    // Get the logged-in user's ID
+                    val userId = auth.currentUser?.uid ?: return@addOnCompleteListener
+                    // Fetch user details from Firestore based on userId
+                    fetchUserRole(userId)
                 } else {
-                    _authState.value = AuthState.Error(task.exception?.message ?: "Something Went Wrong!")
+                    _authState.value = AuthState.Error(task.exception?.message ?: "Login failed!")
                 }
+            }
+    }
+
+    private fun fetchUserRole(userId: String) {
+        firestore.collection("users").document(userId).get()
+            .addOnSuccessListener { document ->
+                if (document.exists()) {
+                    val role = document.getString("role")
+                    when (role) {
+                        "HOD" -> _authState.value = AuthState.RedirectToHOD
+                        "DOCTOR" -> _authState.value = AuthState.RedirectToDoctor
+                        "OPTOMETRIST" -> _authState.value = AuthState.RedirectToOptometrist
+                        "RECEPTIONIST" -> _authState.value = AuthState.RedirectToReceptionist
+                        else -> _authState.value = AuthState.Error("Invalid role assigned")
+                    }
+                } else {
+                    _authState.value = AuthState.Error("User data not found!")
+                }
+            }
+            .addOnFailureListener { e ->
+                _authState.value = AuthState.Error("Failed to fetch user role: ${e.message}")
             }
     }
 
@@ -59,13 +82,9 @@ class AuthViewModel : ViewModel() {
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     val userId = auth.currentUser?.uid ?: return@addOnCompleteListener
-                    try {
-                        saveUserDetails(userId, name, email, password, phone, selectedRole)
-                    } catch (e: Exception) {
-                        _authState.value = AuthState.Error("Encryption failed: ${e.message}")
-                    }
+                    saveUserDetails(userId, name, email, password, phone, selectedRole)
                 } else {
-                    _authState.value = AuthState.Error(task.exception?.message ?: "Something Went Wrong!")
+                    _authState.value = AuthState.Error(task.exception?.message ?: "Signup failed!")
                 }
             }
     }
@@ -74,35 +93,26 @@ class AuthViewModel : ViewModel() {
         val user = hashMapOf(
             "name" to name,
             "email" to email,
-            "password" to password,  // Storing encrypted password
+            "password" to password,  // Storing encrypted password if needed
             "phone" to phone,
             "role" to role
         )
 
         firestore.collection("users").document(userId).set(user)
             .addOnSuccessListener {
-                Log.d("AuthViewModel", "User data saved successfully") // Debugging log
-                // Redirect to the specific role-based screen
+                Log.d("AuthViewModel", "User data saved successfully")
+                // Redirect after signup based on role
                 when (role) {
                     "HOD" -> _authState.value = AuthState.RedirectToHOD
                     "DOCTOR" -> _authState.value = AuthState.RedirectToDoctor
                     "OPTOMETRIST" -> _authState.value = AuthState.RedirectToOptometrist
                     "RECEPTIONIST" -> _authState.value = AuthState.RedirectToReceptionist
-                    else -> _authState.value = AuthState.UnAuthenticated
+                    else -> _authState.value = AuthState.Error("Unknown role")
                 }
             }
             .addOnFailureListener { e ->
                 _authState.value = AuthState.Error("Failed to save user data! Error: ${e.message}")
             }
-    }
-
-
-    // Key generation for AES encryption
-    private fun generateKey(secret: String): SecretKeySpec {
-        val sha = MessageDigest.getInstance("SHA-256")
-        var key = secret.toByteArray(Charsets.UTF_8)
-        key = sha.digest(key)
-        return SecretKeySpec(key.copyOf(16), "AES")
     }
 
     fun signout() {

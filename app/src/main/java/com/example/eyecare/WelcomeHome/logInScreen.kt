@@ -66,23 +66,35 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel) {
     val authState = authViewModel.authState.observeAsState()
     val context = LocalContext.current
 
+    LaunchedEffect(Unit) {
+        authViewModel.checkAuthState() // This checks if the user is already authenticated
+    }
+
     LaunchedEffect(authState.value) {
         when (authState.value) {
             is AuthState.RedirectToHOD -> {
                 Toast.makeText(context, "Redirecting to HOD Screen", Toast.LENGTH_SHORT).show()
-                navController.navigate("hodScreen")
+                navController.navigate("hodScreen") {
+                    popUpTo("login") { inclusive = true } // Remove login from back stack
+                }
             }
             is AuthState.RedirectToDoctor -> {
                 Toast.makeText(context, "Redirecting to Doctor Screen", Toast.LENGTH_SHORT).show()
-                navController.navigate("doctorScreen")
+                navController.navigate("doctorScreen") {
+                    popUpTo("login") { inclusive = true }
+                }
             }
             is AuthState.RedirectToOptometrist -> {
                 Toast.makeText(context, "Redirecting to Optometrist Screen", Toast.LENGTH_SHORT).show()
-                navController.navigate("optometristScreen")
+                navController.navigate("optometristScreen") {
+                    popUpTo("login") { inclusive = true }
+                }
             }
             is AuthState.RedirectToReceptionist -> {
                 Toast.makeText(context, "Redirecting to Receptionist Screen", Toast.LENGTH_SHORT).show()
-                navController.navigate("receptionistScreen")
+                navController.navigate("receptionistScreen") {
+                    popUpTo("login") { inclusive = true }
+                }
             }
             is AuthState.Error -> {
                 Toast.makeText(context, (authState.value as AuthState.Error).message, Toast.LENGTH_SHORT).show()
