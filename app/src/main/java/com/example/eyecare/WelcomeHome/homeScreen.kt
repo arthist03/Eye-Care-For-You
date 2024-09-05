@@ -25,10 +25,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import com.example.eyecare.Extra.AuthViewModel
 import com.example.eyecare.R
 
 @Composable
-fun homeScreen() {
+fun homeScreen(navController: NavController, authViewModel: AuthViewModel) {
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -102,7 +104,7 @@ fun homeScreen() {
                 .padding(bottom = 80.dp), // Adjust padding to position on circles
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            ElevatedButton(onClick = { /*TODO*/ },
+            ElevatedButton(onClick = { navController.navigate("login") },
                 colors = ButtonDefaults.elevatedButtonColors(Color(0xFF1F86FF)),
                 modifier = Modifier.height(50.dp).width(130.dp),
                 elevation = ButtonDefaults.buttonElevation(
@@ -111,7 +113,7 @@ fun homeScreen() {
             ) {
                 Text(text = "Log in", color = Color.White, fontWeight = FontWeight.Bold)
             }
-            ElevatedButton(onClick = { /*TODO*/ },
+            ElevatedButton(onClick = {navController.navigate("signup")},
                 colors = ButtonDefaults.elevatedButtonColors(Color(0xFF6C80E7)),
                 modifier = Modifier.height(50.dp).width(130.dp),elevation = ButtonDefaults.buttonElevation(
                     defaultElevation = 20.dp,
@@ -123,8 +125,3 @@ fun homeScreen() {
     }
 }
 
-@Preview
-@Composable
-private fun homePrev() {
-    homeScreen()
-}

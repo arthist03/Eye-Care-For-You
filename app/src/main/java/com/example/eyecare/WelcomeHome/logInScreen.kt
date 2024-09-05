@@ -2,6 +2,7 @@
 
 package com.example.eyecare.WelcomeHome
 
+import android.widget.Toast
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -30,7 +31,9 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -43,6 +46,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -50,14 +54,52 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import com.example.eyecare.Extra.AuthState
+import com.example.eyecare.Extra.AuthViewModel
 import com.example.eyecare.R
 import org.intellij.lang.annotations.JdkConstants.HorizontalAlignment
 
 @Composable
-fun LoginScreen() {
+fun LoginScreen(navController: NavController, authViewModel: AuthViewModel) {
+
+    val authState = authViewModel.authState.observeAsState()
+    val context = LocalContext.current
+
+    LaunchedEffect(authState.value) {
+        when (authState.value) {
+            is AuthState.RedirectToHOD -> {
+                Toast.makeText(context, "Redirecting to HOD Screen", Toast.LENGTH_SHORT).show()
+                navController.navigate("hodScreen")
+            }
+            is AuthState.RedirectToDoctor -> {
+                Toast.makeText(context, "Redirecting to Doctor Screen", Toast.LENGTH_SHORT).show()
+                navController.navigate("doctorScreen")
+            }
+            is AuthState.RedirectToOptometrist -> {
+                Toast.makeText(context, "Redirecting to Optometrist Screen", Toast.LENGTH_SHORT).show()
+                navController.navigate("optometristScreen")
+            }
+            is AuthState.RedirectToReceptionist -> {
+                Toast.makeText(context, "Redirecting to Receptionist Screen", Toast.LENGTH_SHORT).show()
+                navController.navigate("receptionistScreen")
+            }
+            is AuthState.Error -> {
+                Toast.makeText(context, (authState.value as AuthState.Error).message, Toast.LENGTH_SHORT).show()
+            }
+            else -> {
+                // No action, could still be loading or uninitialized
+                Toast.makeText(context, "Awaiting login", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+
+
     Box(
         modifier = Modifier
-            .fillMaxSize().padding(top = 15.dp)
+            .fillMaxSize()
+            .padding(top = 15.dp)
     ) {
         // Background with circles and gradient
         Canvas(modifier = Modifier.fillMaxSize()) {
@@ -115,7 +157,7 @@ fun LoginScreen() {
                 imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
                 contentDescription = "Back",
                 modifier = Modifier
-                    .clickable { /* Handle Back */ }
+                    .clickable { navController.navigate("home") }
                     .size(50.dp)
             )
 
@@ -185,7 +227,7 @@ fun LoginScreen() {
             Spacer(modifier = Modifier.height(72.dp))
 
             ElevatedButton(
-                onClick = { /*TODO*/ },
+                onClick = { authViewModel.login(email, password) },
                 colors = ButtonDefaults.elevatedButtonColors(Color(0xFF1F86FF)),
                 modifier = Modifier
                     .height(50.dp)
@@ -202,12 +244,14 @@ fun LoginScreen() {
                     fontSize = 20.sp
                 )
             }
+            
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Row {
+                Text(text = "Don't have an account? ", color = Color.White)
+                Text(text = "SignUp", color = Color.White, modifier = Modifier.clickable { navController.navigate("signup") })
+
+            }
         }
     }
-}
-
-@Preview
-@Composable
-private fun LoginPrev() {
-    LoginScreen()
 }

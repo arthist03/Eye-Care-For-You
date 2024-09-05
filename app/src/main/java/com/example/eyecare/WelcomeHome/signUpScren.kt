@@ -1,37 +1,20 @@
 package com.example.eyecare.WelcomeHome
 
-import android.provider.ContactsContract.CommonDataKinds.Phone
+import android.widget.Toast
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ElevatedButton
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
@@ -39,27 +22,47 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import com.example.eyecare.Extra.AuthState
+import com.example.eyecare.Extra.AuthViewModel
 import com.example.eyecare.R
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun signUpScreen() {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-    ) {
-        // Background with circles and gradient
+fun SignUpScreen(navController: NavController, authViewModel: AuthViewModel) {
+    var email by rememberSaveable { mutableStateOf("") }
+    var password by rememberSaveable { mutableStateOf("") }
+    var confirmPassword by rememberSaveable { mutableStateOf("") }
+    var name by rememberSaveable { mutableStateOf("") }
+    var phone by rememberSaveable { mutableStateOf("") }
+    var selectedRole by rememberSaveable { mutableStateOf("") }
+    var expanded by remember { mutableStateOf(false) }
+    val roles = listOf("HOD", "OPTOMETRIST", "DOCTOR", "RECEPTIONIST")
+
+    val authState = authViewModel.authState.observeAsState()
+    val context = LocalContext.current
+
+    LaunchedEffect(authState.value) {
+        when (authState.value) {
+            is AuthState.RedirectToHOD -> navController.navigate("hodScreen")
+            is AuthState.RedirectToDoctor -> navController.navigate("doctorScreen")
+            is AuthState.RedirectToOptometrist -> navController.navigate("optometristScreen")
+            is AuthState.RedirectToReceptionist -> navController.navigate("receptionistScreen")
+            is AuthState.Error -> Toast.makeText(context, (authState.value as AuthState.Error).message, Toast.LENGTH_SHORT).show()
+            else -> Unit
+        }
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
         Canvas(modifier = Modifier.fillMaxSize()) {
             val width = size.width
             val height = size.height
-
             drawCircle(
                 brush = Brush.verticalGradient(
                     colors = listOf(Color(0xFF39A6EE), Color(0xFF1242E6))
@@ -68,8 +71,6 @@ fun signUpScreen() {
                 center = Offset(x = width / 2, y = height + 50)
             )
         }
-
-        // Circle behind the back arrow and "Log In" text
         Canvas(
             modifier = Modifier
                 .size(200.dp)
@@ -81,13 +82,13 @@ fun signUpScreen() {
                 color = Color(0xFF2878EB),
                 radius = size.minDimension / 2,
                 center = Offset(size.width / 2, size.height / 2),
-                alpha = 0.8f // Adjust alpha for blur effect
+                alpha = 0.8f
             )
         }
-
         Row(
             modifier = Modifier
                 .fillMaxWidth()
+                .offset(y = 20.dp)
                 .padding(top = 20.dp),
             horizontalArrangement = Arrangement.Start,
             verticalAlignment = Alignment.CenterVertically,
@@ -96,7 +97,7 @@ fun signUpScreen() {
                 imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
                 contentDescription = "Back",
                 modifier = Modifier
-                    .clickable { /* Handle Back */ }
+                    .clickable { navController.navigate("home") }
                     .size(50.dp)
             )
 
@@ -104,13 +105,13 @@ fun signUpScreen() {
             Text(text = "Sign Up", fontSize = 24.sp)
         }
 
-        Row(
+        Row (
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.End
         ) {
             Image(
                 painter = painterResource(id = R.drawable.login),
-                contentDescription = "Side logo",
+                contentDescription ="Side logo",
                 Modifier.size(150.dp)
             )
         }
@@ -119,33 +120,31 @@ fun signUpScreen() {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(30.dp)
-                .offset(y = 250.dp),
+                .offset(y = 200.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            // Email TextField
-            var email by rememberSaveable {
-                mutableStateOf("")
-            }
+
+
+            Spacer(modifier = Modifier.height(24.dp))
+
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
                 label = { Text("Email") },
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-                colors = TextFieldDefaults.outlinedTextFieldColors(
-                    focusedBorderColor = Color.White,
-                    unfocusedBorderColor = Color.White,
-                    containerColor = Color.White,
+                colors = OutlinedTextFieldDefaults.colors(
                     focusedTextColor = Color.Black,
-                    focusedLabelColor = Color.Black,
-                    unfocusedLabelColor = Color.Black
-                )
+                    focusedContainerColor = Color.White,
+                    unfocusedContainerColor = Color.White,
+                    focusedBorderColor = Color.White,
+                    unfocusedBorderColor = Color.White
+                ),
+                maxLines = 1
             )
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Password TextField
-            var password by rememberSaveable { mutableStateOf("") }
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
@@ -153,104 +152,122 @@ fun signUpScreen() {
                 modifier = Modifier.fillMaxWidth(),
                 visualTransformation = PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                colors = TextFieldDefaults.outlinedTextFieldColors(
-                    focusedBorderColor = Color.White,
-                    unfocusedBorderColor = Color.White,
-                    containerColor = Color.White,
+                colors = OutlinedTextFieldDefaults.colors(
                     focusedTextColor = Color.Black,
-                    focusedLabelColor = Color.Black,
-                    unfocusedLabelColor = Color.Black,
-                )
+                    focusedContainerColor = Color.White,
+                    unfocusedContainerColor = Color.White,
+                    focusedBorderColor = Color.White,
+                    unfocusedBorderColor = Color.White
+                ),
+                maxLines = 1
             )
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Password TextField
-            var confirmPasswordVisualTransformation by rememberSaveable { mutableStateOf("") }
             OutlinedTextField(
-                value = confirmPasswordVisualTransformation,
-                onValueChange = { confirmPasswordVisualTransformation = it },
+                value = confirmPassword,
+                onValueChange = { confirmPassword = it },
                 label = { Text("Confirm Password") },
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                colors = TextFieldDefaults.outlinedTextFieldColors(
-                    focusedBorderColor = Color.White,
-                    unfocusedBorderColor = Color.White,
-                    containerColor = Color.White,
+                colors = OutlinedTextFieldDefaults.colors(
                     focusedTextColor = Color.Black,
-                    focusedLabelColor = Color.Black,
-                    unfocusedLabelColor = Color.Black,
-                )
+                    focusedContainerColor = Color.White,
+                    unfocusedContainerColor = Color.White,
+                    focusedBorderColor = Color.White,
+                    unfocusedBorderColor = Color.White
+                ),
+                maxLines = 1
             )
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            var name by rememberSaveable {
-                mutableStateOf("")
-            }
             OutlinedTextField(
                 value = name,
                 onValueChange = { name = it },
                 label = { Text("Name") },
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-                colors = TextFieldDefaults.outlinedTextFieldColors(
-                    focusedBorderColor = Color.White,
-                    unfocusedBorderColor = Color.White,
-                    containerColor = Color.White,
+                colors = OutlinedTextFieldDefaults.colors(
                     focusedTextColor = Color.Black,
-                    focusedLabelColor = Color.Black,
-                    unfocusedLabelColor = Color.Black
-                )
+                    focusedContainerColor = Color.White,
+                    unfocusedContainerColor = Color.White,
+                    focusedBorderColor = Color.White,
+                    unfocusedBorderColor = Color.White
+                ),
+                maxLines = 1
             )
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            var Phone by rememberSaveable {
-                mutableStateOf("")
-            }
-            OutlinedTextField(
-                value = Phone,
-                onValueChange = { Phone = it },
-                label = { Text("Phone Number") },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
-                modifier = Modifier.fillMaxWidth(),
-                colors = TextFieldDefaults.outlinedTextFieldColors(
-                    focusedBorderColor = Color.White,
-                    unfocusedBorderColor = Color.White,
-                    containerColor = Color.White,
-                    focusedTextColor = Color.Black,
-                    focusedLabelColor = Color.Black,
-                    unfocusedLabelColor = Color.Black
+            Box {
+                OutlinedTextField(
+                    value = selectedRole,
+                    onValueChange = { selectedRole = it },
+                    label = { Text("Select Role") },
+                    readOnly = true,
+                    modifier = Modifier.fillMaxWidth(),
+                    trailingIcon = {
+                        Icon(
+                            imageVector = Icons.Filled.ArrowDropDown,
+                            contentDescription = "Dropdown Arrow",
+                            modifier = Modifier.clickable { expanded = !expanded }
+                        )
+                    },
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = Color.Black,
+                        focusedContainerColor = Color.White,
+                        unfocusedContainerColor = Color.White,
+                        focusedBorderColor = Color.White,
+                        unfocusedBorderColor = Color.White
+                    )
                 )
+
+                DropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false }
+                ) {
+                    roles.forEach { role ->
+                        DropdownMenuItem(
+                            text = { Text(role) },
+                            onClick = {
+                                selectedRole = role
+                                expanded = false
+                            }
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            OutlinedTextField(
+                value = phone,
+                onValueChange = { phone = it },
+                label = { Text("Phone Number") },
+                modifier = Modifier.fillMaxWidth(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedTextColor = Color.Black,
+                    focusedContainerColor = Color.White,
+                    unfocusedContainerColor = Color.White,
+                    focusedBorderColor = Color.White,
+                    unfocusedBorderColor = Color.White
+                ),
+                maxLines = 1
             )
 
-            Spacer(modifier = Modifier.height(40.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
             ElevatedButton(
-                onClick = { /*TODO*/ },
-                colors = ButtonDefaults.elevatedButtonColors(Color(0xFF1F86FF)),
+                onClick = { authViewModel.signup(email, password, confirmPassword, name, phone, selectedRole)},
                 modifier = Modifier
-                    .height(50.dp)
-                    .width(170.dp),
-                elevation = ButtonDefaults.buttonElevation(
-                    defaultElevation = 20.dp,
-                    pressedElevation = 15.dp
-                )
+                    .clip(RoundedCornerShape(40.dp))
+                    .width(300.dp)
+                    .height(60.dp)
             ) {
-                Text(
-                    text = "Sign Up",
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 20.sp
-                )
+                Text(text = "Sign Up", fontSize = 20.sp)
             }
         }
     }
-}
-
-@Preview
-@Composable
-private fun SignUpPreview() {
-    signUpScreen()
 }
