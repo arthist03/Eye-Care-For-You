@@ -31,6 +31,7 @@ fun withoutGlassOpto(navController: NavController, patientId: String) {
     val db = FirebaseFirestore.getInstance()
     val context = LocalContext.current
 
+    // State to store patient and optometrist details
     var patientDetails by remember { mutableStateOf<Patient?>(null) }
     var isLoading by remember { mutableStateOf(true) }
     var errorMessage by remember { mutableStateOf("") }
@@ -39,19 +40,18 @@ fun withoutGlassOpto(navController: NavController, patientId: String) {
     var optoName by remember { mutableStateOf("Loading...") }
     var optoPosition by remember { mutableStateOf("Loading...") }
 
+    // State for optometric examination inputs
     var leftEyeDistance by remember { mutableStateOf("") }
     var rightEyeDistance by remember { mutableStateOf("") }
     var leftEyeNear by remember { mutableStateOf("") }
     var rightEyeNear by remember { mutableStateOf("") }
     var leftCylindricalMag by remember { mutableStateOf("") }
-    var leftCylindricalAxis by remember { mutableStateOf(0f) }
     var rightCylindricalMag by remember { mutableStateOf("") }
-    var rightCylindricalAxis by remember { mutableStateOf(0f) }
-    var isCylindricalLens by remember { mutableStateOf(false) }
     var snellenLeft by remember { mutableStateOf(6f) }
     var snellenRight by remember { mutableStateOf(6f) }
+    var isCylindricalLens by remember { mutableStateOf(false) }
 
-    // Fetch patient details from Firestore by ID
+    // Fetch patient details from Firestore
     LaunchedEffect(patientId) {
         db.collection("patients").document(patientId).get()
             .addOnSuccessListener { document ->
@@ -68,7 +68,7 @@ fun withoutGlassOpto(navController: NavController, patientId: String) {
             }
     }
 
-    // Fetch optometrist's details from Firestore
+    // Fetch optometrist details from Firestore
     LaunchedEffect(currentUserId) {
         currentUserId?.let { userId ->
             val userDocRef = db.collection("users").document(userId)
@@ -96,7 +96,7 @@ fun withoutGlassOpto(navController: NavController, patientId: String) {
             topBarId(
                 name = optoName,
                 position = optoPosition,
-                screenName = "Without Glasses",
+                screenName = "Without Glasses", // Indicate screen type in top bar
                 authViewModel = AuthViewModel(),
                 navController = navController
             )
@@ -132,36 +132,20 @@ fun withoutGlassOpto(navController: NavController, patientId: String) {
                             modifier = Modifier.padding(16.dp),
                             verticalArrangement = Arrangement.spacedBy(16.dp)
                         ) {
-                            Row (horizontalArrangement = Arrangement.SpaceBetween,
-                                modifier = Modifier.fillMaxWidth()){
+                            Row(
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
                                 Text(
                                     text = "Name: ${patient.name}",
                                     fontSize = 20.sp,
                                 )
-
                                 Spacer(modifier = Modifier.width(10.dp))
-
                                 Text(
                                     text = "Id: ${patient.id}",
                                     fontSize = 15.sp,
                                 )
                             }
-                            Row (horizontalArrangement = Arrangement.SpaceBetween,
-                                modifier = Modifier.fillMaxWidth()){
-                                Text(
-                                    text = "Gender: ${patient.gender}",
-                                    fontSize = 20.sp,
-                                )
-
-                                Spacer(modifier = Modifier.width(10.dp))
-
-                                Text(
-                                    text = "Age: ${patient.age} Years",
-                                    fontSize = 15.sp,
-                                )
-                            }
-
-                            // New Prescription
                             Text(
                                 text = "No Glass's Prescription",
                                 fontSize = 20.sp,
@@ -177,7 +161,7 @@ fun withoutGlassOpto(navController: NavController, patientId: String) {
                                     .padding(horizontal = 16.dp, vertical = 8.dp)
                             )
 
-                            // Distance Vision
+                            // Fields for examination details
                             Text(text = "Distance Vision")
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
@@ -200,7 +184,6 @@ fun withoutGlassOpto(navController: NavController, patientId: String) {
                                 )
                             }
 
-                            // Near Vision
                             Text(text = "Near Vision")
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
@@ -223,7 +206,6 @@ fun withoutGlassOpto(navController: NavController, patientId: String) {
                                 )
                             }
 
-                            // Cylindrical Lens Option
                             Column(
                                 modifier = Modifier.fillMaxWidth(),
                                 verticalArrangement = Arrangement.Center
@@ -253,12 +235,6 @@ fun withoutGlassOpto(navController: NavController, patientId: String) {
                                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                                     )
                                     Spacer(modifier = Modifier.width(16.dp))
-                                    SeekerWithTextField()
-                                }
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween
-                                ) {
                                     OutlinedTextField(
                                         value = rightCylindricalMag,
                                         onValueChange = { rightCylindricalMag = it },
@@ -266,8 +242,6 @@ fun withoutGlassOpto(navController: NavController, patientId: String) {
                                         modifier = Modifier.weight(1f),
                                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                                     )
-                                    Spacer(modifier = Modifier.width(16.dp))
-                                    SeekerWithTextField()
                                 }
                             }
 
@@ -294,19 +268,24 @@ fun withoutGlassOpto(navController: NavController, patientId: String) {
 
                             Spacer(modifier = Modifier.height(20.dp))
 
-                            Row (modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceEvenly){
-                                ElevatedButton(onClick = {navController.navigate("withGlassOpto/${patient.id}") {
-                                    popUpTo("patientDetails/${patient.id}") { inclusive = true }
-                                } }) {
+                            // Save and navigation buttons
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceEvenly
+                            ) {
+                                ElevatedButton(onClick = {
+                                    navController.navigate("withGlassOpto/${patient.id}") {
+                                        popUpTo("patientDetails/${patient.id}") { inclusive = true }
+                                    }
+                                }) {
                                     Text(text = "Back")
                                 }
 
                                 ElevatedButton(onClick = {
-                                    saveWithOutGlassOpto(
+                                    saveOptoData(
                                         patientId = patientId,
                                         name = patient.name,
-                                        age = patient.age,
+                                        age = patient.age.toString(),
                                         leftEyeDistance = leftEyeDistance,
                                         rightEyeDistance = rightEyeDistance,
                                         leftEyeNear = leftEyeNear,
@@ -316,7 +295,8 @@ fun withoutGlassOpto(navController: NavController, patientId: String) {
                                         snellenLeft = snellenLeft,
                                         snellenRight = snellenRight,
                                         db = db,
-                                        context= context
+                                        context = context,
+                                        screenType = "withoutGlassOpto"
                                     )
                                     navController.navigate("newGlassOpto/${patient.id}") {
                                         popUpTo("patientDetails/${patient.id}") { inclusive = true }
@@ -324,9 +304,7 @@ fun withoutGlassOpto(navController: NavController, patientId: String) {
                                 }) {
                                     Text(text = "Save Examination Details")
                                 }
-
                             }
-
                         }
                     }
                 }
@@ -335,10 +313,10 @@ fun withoutGlassOpto(navController: NavController, patientId: String) {
     }
 }
 
-fun saveWithOutGlassOpto(
+fun saveOptoData(
     patientId: String,
-    name:String,
-    age:String,
+    name: String,
+    age: String,
     leftEyeDistance: String,
     rightEyeDistance: String,
     leftEyeNear: String,
@@ -348,27 +326,57 @@ fun saveWithOutGlassOpto(
     snellenLeft: Float,
     snellenRight: Float,
     db: FirebaseFirestore,
-    context: Context
+    context: Context,
+    screenType: String // To differentiate between screens
 ) {
     val examinationDetails = hashMapOf(
+        "Patient Id" to patientId,
         "Name" to name,
         "Age" to age,
-        "leftEyeDistance" to leftEyeDistance,
-        "rightEyeDistance" to rightEyeDistance,
-        "leftEyeNear" to leftEyeNear,
-        "rightEyeNear" to rightEyeNear,
-        "leftCylindricalMag" to leftCylindricalMag,
-        "rightCylindricalMag" to rightCylindricalMag,
-        "snellenLeft" to snellenLeft,
-        "snellenRight" to snellenRight,
+        "Left Eye Distance" to leftEyeDistance,
+        "Right Eye Distance" to rightEyeDistance,
+        "Left Eye Near" to leftEyeNear,
+        "Right Eye Near" to rightEyeNear,
+        "Left Cylindrical Magnitude" to leftCylindricalMag,
+        "Right Cylindrical Magnitude" to rightCylindricalMag,
+        "Snellen Left" to snellenLeft,
+        "Snellen Right" to snellenRight
     )
 
-    db.collection("optoWithOutGlasses").document(patientId)
+    // Collection names based on screen type
+    val collectionName = when (screenType) {
+        "withoutGlassOpto" -> "optoWithOutGlasses"
+        "withGlassOpto" -> "optoWithGlasses"
+        "newGlassOpto" -> "optoNewGlass"
+        else -> "examinations"
+    }
+
+    // Save data in Firestore
+    db.collection(collectionName).document(patientId)
         .set(examinationDetails)
         .addOnSuccessListener {
-            Toast.makeText(context, "Data saved Successfully", Toast.LENGTH_SHORT).show() // Use .show() to display the toast
+            Toast.makeText(context, "Data saved successfully to ${name} & ${patientId} ", Toast.LENGTH_SHORT).show()
         }
         .addOnFailureListener { exception ->
             Toast.makeText(context, "Failed to save data: ${exception.message}", Toast.LENGTH_SHORT).show()
         }
+}
+
+@Composable
+fun VerticalSnellenSlider(value: Float, onValueChange: (Float) -> Unit, label: String, modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(text = "$label: 6/${value.toInt()}")
+        Slider(
+            value = value,
+            onValueChange = onValueChange,
+            valueRange = 6f..60f,
+            steps = 10,
+            modifier = Modifier
+                .height(150.dp)
+                .background(Color(0xFFE7F0FF), RoundedCornerShape(16.dp))
+        )
+    }
 }

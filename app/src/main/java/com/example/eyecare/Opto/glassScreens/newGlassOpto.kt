@@ -31,6 +31,7 @@ fun newGlassOpto(navController: NavController, patientId: String) {
     val db = FirebaseFirestore.getInstance()
     val context = LocalContext.current
 
+    // State to store patient and optometrist details
     var patientDetails by remember { mutableStateOf<Patient?>(null) }
     var isLoading by remember { mutableStateOf(true) }
     var errorMessage by remember { mutableStateOf("") }
@@ -39,19 +40,19 @@ fun newGlassOpto(navController: NavController, patientId: String) {
     var optoName by remember { mutableStateOf("Loading...") }
     var optoPosition by remember { mutableStateOf("Loading...") }
 
+    // State for optometric examination inputs
     var leftEyeDistance by remember { mutableStateOf("") }
     var rightEyeDistance by remember { mutableStateOf("") }
     var leftEyeNear by remember { mutableStateOf("") }
     var rightEyeNear by remember { mutableStateOf("") }
     var leftCylindricalMag by remember { mutableStateOf("") }
-    var leftCylindricalAxis by remember { mutableStateOf(0f) }
     var rightCylindricalMag by remember { mutableStateOf("") }
-    var rightCylindricalAxis by remember { mutableStateOf(0f) }
-    var isCylindricalLens by remember { mutableStateOf(false) }
     var snellenLeft by remember { mutableStateOf(6f) }
     var snellenRight by remember { mutableStateOf(6f) }
+var isCylindricalLens by remember {mutableStateOf(false)}
 
-    // Fetch patient details from Firestore by ID
+
+    // Fetch patient details from Firestore
     LaunchedEffect(patientId) {
         db.collection("patients").document(patientId).get()
             .addOnSuccessListener { document ->
@@ -68,7 +69,7 @@ fun newGlassOpto(navController: NavController, patientId: String) {
             }
     }
 
-    // Fetch optometrist's details from Firestore
+    // Fetch optometrist details from Firestore
     LaunchedEffect(currentUserId) {
         currentUserId?.let { userId ->
             val userDocRef = db.collection("users").document(userId)
@@ -96,7 +97,7 @@ fun newGlassOpto(navController: NavController, patientId: String) {
             topBarId(
                 name = optoName,
                 position = optoPosition,
-                screenName = "New Prescription",
+                screenName = "With Glasses", // Indicate screen type in top bar
                 authViewModel = AuthViewModel(),
                 navController = navController
             )
@@ -132,52 +133,12 @@ fun newGlassOpto(navController: NavController, patientId: String) {
                             modifier = Modifier.padding(16.dp),
                             verticalArrangement = Arrangement.spacedBy(16.dp)
                         ) {
-                            Row (horizontalArrangement = Arrangement.SpaceBetween,
-                                modifier = Modifier.fillMaxWidth()){
-                                Text(
-                                    text = "Name: ${patient.name}",
-                                    fontSize = 20.sp,
-                                )
+                            // Display patient details
+                            Text(text = "Name: ${patient.name}")
+                            Text(text = "ID: ${patient.id}")
+                            Text(text = "Age: ${patient.age} Years")
 
-                                Spacer(modifier = Modifier.width(10.dp))
-
-                                Text(
-                                    text = "Id: ${patient.id}",
-                                    fontSize = 15.sp,
-                                )
-                            }
-                            Row (horizontalArrangement = Arrangement.SpaceBetween,
-                                modifier = Modifier.fillMaxWidth()){
-                                Text(
-                                    text = "Gender: ${patient.gender}",
-                                    fontSize = 20.sp,
-                                )
-
-                                Spacer(modifier = Modifier.width(10.dp))
-
-                                Text(
-                                    text = "Age: ${patient.age} Years",
-                                    fontSize = 15.sp,
-                                )
-                            }
-
-                            // New Prescription
-                            Text(
-                                text = "New Glass Prescription",
-                                fontSize = 20.sp,
-                                fontWeight = FontWeight.Medium,
-                                color = Color(0xFF1242E6),
-                                modifier = Modifier
-                                    .padding(vertical = 8.dp)
-                                    .background(
-                                        color = Color(0xFFE7F0FF),
-                                        shape = RoundedCornerShape(16.dp)
-                                    )
-                                    .align(alignment = Alignment.CenterHorizontally)
-                                    .padding(horizontal = 16.dp, vertical = 8.dp)
-                            )
-
-                            // Distance Vision
+                            // Fields for examination details
                             Text(text = "Distance Vision")
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
@@ -200,7 +161,6 @@ fun newGlassOpto(navController: NavController, patientId: String) {
                                 )
                             }
 
-                            // Near Vision
                             Text(text = "Near Vision")
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
@@ -223,12 +183,16 @@ fun newGlassOpto(navController: NavController, patientId: String) {
                                 )
                             }
 
-                            // Cylindrical Lens Option
                             Column(
-                                modifier = Modifier.fillMaxWidth(),
-                                verticalArrangement = Arrangement.Center
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                                verticalArrangement = Arrangement.spacedBy(16.dp)
                             ) {
-                                Row {
+                                // Checkbox for Cylindrical Lens
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
                                     Checkbox(
                                         checked = isCylindricalLens,
                                         onCheckedChange = { isCylindricalLens = it }
@@ -236,139 +200,104 @@ fun newGlassOpto(navController: NavController, patientId: String) {
                                     Spacer(modifier = Modifier.width(8.dp))
                                     Text(text = "Add Cylindrical Lens")
                                 }
-                            }
 
-                            if (isCylindricalLens) {
-                                // Cylindrical Lens
-                                Text(text = "Cylindrical Lens")
-                                Column(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    verticalArrangement = Arrangement.SpaceBetween
-                                ) {
-                                    OutlinedTextField(
-                                        value = leftCylindricalMag,
-                                        onValueChange = { leftCylindricalMag = it },
-                                        label = { Text("Left Eye Magnitude") },
-                                        modifier = Modifier.weight(1f),
-                                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                                // Conditionally show Cylindrical Lens fields
+                                if (isCylindricalLens) {
+                                    Text(
+                                        text = "Cylindrical Lens",
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 16.sp
                                     )
-                                    Spacer(modifier = Modifier.width(16.dp))
-                                    SeekerWithTextField()
+                                    Column(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(top = 8.dp),
+                                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                                    ) {
+                                        OutlinedTextField(
+                                            value = leftCylindricalMag,
+                                            onValueChange = { leftCylindricalMag = it },
+                                            label = { Text("Left Eye Magnitude") },
+                                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                                        )
+                                        OutlinedTextField(
+                                            value = rightCylindricalMag,
+                                            onValueChange = { rightCylindricalMag = it },
+                                            label = { Text("Right Eye Magnitude") },
+                                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                                        )
+                                    }
                                 }
+
+                                // Snellen Test with Vertical Slider
+                                Text(text = "Snellen Test (6/x)")
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.SpaceBetween
                                 ) {
-                                    OutlinedTextField(
-                                        value = rightCylindricalMag,
-                                        onValueChange = { rightCylindricalMag = it },
-                                        label = { Text("Right Eye Magnitude") },
-                                        modifier = Modifier.weight(1f),
-                                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                                    VerticalSnellenSlider(
+                                        value = snellenLeft,
+                                        onValueChange = { snellenLeft = it },
+                                        label = "Left Eye",
+                                        modifier = Modifier.weight(1f)
                                     )
                                     Spacer(modifier = Modifier.width(16.dp))
-                                    SeekerWithTextField()
-                                }
-                            }
-
-                            // Snellen Test with Vertical Slider
-                            Text(text = "Snellen Test (6/x)")
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                VerticalSnellenSlider(
-                                    value = snellenLeft,
-                                    onValueChange = { snellenLeft = it },
-                                    label = "Left Eye",
-                                    modifier = Modifier.weight(1f)
-                                )
-                                Spacer(modifier = Modifier.width(16.dp))
-                                VerticalSnellenSlider(
-                                    value = snellenRight,
-                                    onValueChange = { snellenRight = it },
-                                    label = "Right Eye",
-                                    modifier = Modifier.weight(1f)
-                                )
-                            }
-
-                            Spacer(modifier = Modifier.height(20.dp))
-
-                            Row (modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceEvenly){
-                                ElevatedButton(onClick = { navController.navigate("withoutGlassOpto/${patient.id}") {
-                                    popUpTo("patientDetails/{patientId}") { inclusive = true }
-                                } }) {
-                                    Text(text = "Back")
-                                }
-
-                                ElevatedButton(onClick = {
-                                    saveNewGlassOpto(
-                                        patientId = patientId,
-                                        name = patient.name,
-                                        age = patient.age,
-                                        leftEyeDistance = leftEyeDistance,
-                                        rightEyeDistance = rightEyeDistance,
-                                        leftEyeNear = leftEyeNear,
-                                        rightEyeNear = rightEyeNear,
-                                        leftCylindricalMag = leftCylindricalMag,
-                                        rightCylindricalMag = rightCylindricalMag,
-                                        snellenLeft = snellenLeft,
-                                        snellenRight = snellenRight,
-                                        db = db,
-                                        context= context
+                                    VerticalSnellenSlider(
+                                        value = snellenRight,
+                                        onValueChange = { snellenRight = it },
+                                        label = "Right Eye",
+                                        modifier = Modifier.weight(1f)
                                     )
-                                    navController.navigate("OptoPatients") {
-                                        popUpTo("patientDetails/${patient.id}") { inclusive = true }
-                                    }
-                                }) {
-                                    Text(text = "Save Examination Details")
                                 }
 
-                            }
+                                Spacer(modifier = Modifier.height(20.dp))
 
+
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceEvenly
+                                ) {
+                                    ElevatedButton(onClick = {
+                                        navController.navigate("withoutGlassOpto/${patient.id}") {
+                                            popUpTo("patientDetails/${patient.id}") {
+                                                inclusive = true
+                                            }
+                                        }
+                                    }) {
+                                        Text(text = "Back")
+                                    }
+
+                                    ElevatedButton(onClick = {
+                                        saveOptoData(
+                                            patientId = patientId,
+                                            name = patient.name,
+                                            age = patient.age,
+                                            leftEyeDistance = leftEyeDistance,
+                                            rightEyeDistance = rightEyeDistance,
+                                            leftEyeNear = leftEyeNear,
+                                            rightEyeNear = rightEyeNear,
+                                            leftCylindricalMag = leftCylindricalMag,
+                                            rightCylindricalMag = rightCylindricalMag,
+                                            snellenLeft = snellenLeft,
+                                            snellenRight = snellenRight,
+                                            db = db,
+                                            context = context,
+                                            screenType = "newGlassOpto"
+                                        )
+                                        navController.navigate("OptoPatients") {
+                                            popUpTo("patientDetails/${patient.id}") {
+                                                inclusive = true
+                                            }
+                                        }
+                                    }) {
+                                        Text(text = "Save Examination Details")
+                                    }
+                                }
+                            }
                         }
                     }
                 }
             }
         }
     }
-}
-
-fun saveNewGlassOpto(
-    patientId: String,
-    name:String,
-    age:String,
-    leftEyeDistance: String,
-    rightEyeDistance: String,
-    leftEyeNear: String,
-    rightEyeNear: String,
-    leftCylindricalMag: String,
-    rightCylindricalMag: String,
-    snellenLeft: Float,
-    snellenRight: Float,
-    db: FirebaseFirestore,
-    context: Context
-) {
-    val examinationDetails = hashMapOf(
-        "Name" to name,
-        "Age" to age,
-        "leftEyeDistance" to leftEyeDistance,
-        "rightEyeDistance" to rightEyeDistance,
-        "leftEyeNear" to leftEyeNear,
-        "rightEyeNear" to rightEyeNear,
-        "leftCylindricalMag" to leftCylindricalMag,
-        "rightCylindricalMag" to rightCylindricalMag,
-        "snellenLeft" to snellenLeft,
-        "snellenRight" to snellenRight,
-    )
-
-    db.collection("optoNewGlass").document(patientId)
-        .set(examinationDetails)
-        .addOnSuccessListener {
-            Toast.makeText(context, "Data saved Successfully", Toast.LENGTH_SHORT).show() // Use .show() to display the toast
-        }
-        .addOnFailureListener { exception ->
-            Toast.makeText(context, "Failed to save data: ${exception.message}", Toast.LENGTH_SHORT).show()
-        }
 }

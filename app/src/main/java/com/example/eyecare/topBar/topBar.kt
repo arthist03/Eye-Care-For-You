@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
@@ -76,9 +77,9 @@ fun topBarId(name: String, position: String, screenName:String,authViewModel: Au
 
             Column(
                 modifier = Modifier
-                    .fillMaxHeight()
-                    .size(240.dp),
-                verticalArrangement = Arrangement.Center
+                    .fillMaxHeight(),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.Start
             ) {
                 Text(
                     text = name,
@@ -94,7 +95,7 @@ fun topBarId(name: String, position: String, screenName:String,authViewModel: Au
                     color = Color.White
                 )
             }
-
+            Spacer(modifier = Modifier.width(60.dp))
             TextButton(onClick = {authViewModel.signout()}) {
                 Text(text = "Sign out", color = Color.White, textAlign = TextAlign.End)
             }

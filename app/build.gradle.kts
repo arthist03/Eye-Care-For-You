@@ -74,6 +74,7 @@ dependencies {
     implementation (libs.coil.compose)
     implementation(libs.androidx.glance)
     implementation("androidx.compose.material:material-icons-extended")
+    implementation(libs.firebase.crashlytics.buildtools)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
