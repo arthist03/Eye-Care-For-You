@@ -1,4 +1,4 @@
-package com.example.eyecare.Trail_Pages
+package com.example.eyecare.Opto
 
 
 import android.widget.Toast
@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -43,6 +44,12 @@ fun pageOpto(navController: NavController, authViewModel: AuthViewModel) {
         verticalArrangement = Arrangement.Center)
     {
         Text(text = "Welcome To Opto Screen")
+        Spacer(modifier = Modifier.height(20.dp))
+
+        ElevatedButton(onClick = { navController.navigate("OptoPatients") }) {
+            Text(text = "Check Patients")
+        }
+
         Spacer(modifier = Modifier.height(20.dp))
 
         Text(text = "Sign out", fontSize = 15.sp, color = Color.Black ,modifier = Modifier.clickable { authViewModel.signout()})

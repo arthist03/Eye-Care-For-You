@@ -8,7 +8,6 @@ import androidx.activity.viewModels
 import com.example.eyecare.Extra.AppNavHost
 import com.example.eyecare.Extra.AuthViewModel
 import com.example.eyecare.Extra.LoadingAnimation
-import com.example.eyecare.Opto.homeOpto
 import com.example.eyecare.WelcomeHome.LoginScreen
 import com.example.eyecare.WelcomeHome.homeScreen
 import com.example.eyecare.topBar.topBarId

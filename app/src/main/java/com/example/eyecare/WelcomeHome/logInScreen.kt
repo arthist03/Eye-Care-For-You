@@ -5,6 +5,7 @@ package com.example.eyecare.WelcomeHome
 import android.widget.Toast
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -23,11 +24,17 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
@@ -35,6 +42,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -51,6 +59,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -143,50 +152,57 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel) {
             )
         }
 
-        // Circle behind the back arrow and "Log In" text
-        Canvas(modifier = Modifier
-            .size(200.dp)
-            .offset(x = (-50).dp, y = (-80).dp)
-            .blur(50.dp)
-            .clip(CircleShape)
-        ) {
-            drawCircle(
-                color = Color(0xFF2878EB),
-                radius = size.minDimension / 2,
-                center = Offset(size.width / 2, size.height / 2),
-                alpha = 0.8f // Adjust alpha for blur effect
-            )
-        }
-
-        Row(
+        Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 20.dp),
-            horizontalArrangement = Arrangement.Start,
-            verticalAlignment = Alignment.CenterVertically,
+                .size(230.dp)  // Box size
+                .offset(x = (-50).dp, y = (-70).dp)
+                .blur(6.dp)
+                .graphicsLayer {
+                    clip = true  // Enable clipping to the shape
+                    shape = CircleShape  // Define the shape as a circle
+                }
+                .background(color = Color(0xFF357BDF).copy(alpha = 0.6f), shape = CircleShape) // Add background color with shape and alpha
+        )
+        Column(
+            modifier = Modifier
+                .padding(16.dp)
         ) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
-                contentDescription = "Back",
+            Row(
                 modifier = Modifier
-                    .clickable { navController.navigate("home") }
-                    .size(50.dp)
-            )
+                    .fillMaxWidth()
+                    .padding(top = 20.dp)
+                    .offset(x = -10.dp, y = 20.dp),
+                horizontalArrangement = Arrangement.Start,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+                    contentDescription = "Back",
+                    modifier = Modifier
+                        .clickable { navController.navigate("home") }
+                        .size(50.dp)
+                )
 
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(text = "Log In", fontSize = 24.sp)
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(text = "Log in", fontSize = 24.sp)
+                Spacer(modifier = Modifier.width(8.dp))
+            }
+            Row (modifier = Modifier.fillMaxWidth()
+                .offset(y = -80.dp),
+                horizontalArrangement = Arrangement.End
+            ){
+
+                Image(
+                    painter = painterResource(id = R.drawable.login),
+                    contentDescription = "Side logo",
+                    modifier = Modifier
+                        .size(150.dp)
+                )
+            }
         }
 
-        Row (
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.End
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.login),
-                contentDescription ="Side logo",
-                Modifier.size(150.dp)
-            )
-        }
+
+
 
         Column (
             modifier = Modifier
@@ -202,38 +218,62 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel) {
             }
             OutlinedTextField(
                 value = email,
-                onValueChange = {email = it},
+                onValueChange = { email = it },
                 label = { Text("Email") },
                 modifier = Modifier.fillMaxWidth(),
-                colors = TextFieldDefaults.outlinedTextFieldColors(
-                    focusedBorderColor = Color.White,
-                    unfocusedBorderColor = Color.White,
-                    containerColor = Color.White,
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Default.Email,
+                        contentDescription = "Email Icon"
+                    )
+                },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                colors = OutlinedTextFieldDefaults.colors(
                     focusedTextColor = Color.Black,
-                    focusedLabelColor = Color.Black,
-                    unfocusedLabelColor = Color.Black
-                )
+                    focusedLabelColor = Color.White,
+                    focusedPlaceholderColor = Color.Black,
+                    focusedContainerColor = Color.White,
+                    unfocusedContainerColor = Color.White,
+                    focusedBorderColor = Color.White,
+                    unfocusedBorderColor = Color.White
+                ),
+                maxLines = 1
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
             // Password TextField
             var password by rememberSaveable { mutableStateOf("") }
+            var passwordVisible by remember { mutableStateOf(false) }
             OutlinedTextField(
                 value = password,
-                onValueChange = {password = it},
+                onValueChange = { password = it },
                 label = { Text("Password") },
                 modifier = Modifier.fillMaxWidth(),
-                visualTransformation = PasswordVisualTransformation(),
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Default.Lock,
+                        contentDescription = "Password Icon"
+                    )
+                },
+                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                colors = TextFieldDefaults.outlinedTextFieldColors(
-                    focusedBorderColor = Color.White,
-                    unfocusedBorderColor = Color.White,
-                    containerColor = Color.White,
+                trailingIcon = {
+                    val image = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
+                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                        Icon(imageVector = image, contentDescription = "Toggle Password Visibility")
+                    }
+                },
+                colors = OutlinedTextFieldDefaults.colors(
                     focusedTextColor = Color.Black,
-                    focusedLabelColor = Color.Black,
-                    unfocusedLabelColor = Color.Black,
-                )
+                    focusedLabelColor = Color.White,
+                    focusedPlaceholderColor = Color.Black,
+                    focusedContainerColor = Color.White,
+                    unfocusedContainerColor = Color.White,
+                    focusedBorderColor = Color.White,
+                    unfocusedBorderColor = Color.White
+                ),
+                maxLines = 1
             )
 
             Spacer(modifier = Modifier.height(72.dp))
