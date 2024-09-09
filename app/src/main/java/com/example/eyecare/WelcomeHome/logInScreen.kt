@@ -3,71 +3,47 @@
 package com.example.eyecare.WelcomeHome
 
 import android.widget.Toast
+import androidx.compose.animation.animateColor
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ElevatedButton
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.eyecare.Extra.AuthState
 import com.example.eyecare.Extra.AuthViewModel
-import com.example.eyecare.R
-import org.intellij.lang.annotations.JdkConstants.HorizontalAlignment
+import kotlin.random.Random
 
 @Composable
 fun LoginScreen(navController: NavController, authViewModel: AuthViewModel) {
@@ -75,8 +51,67 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel) {
     val authState = authViewModel.authState.observeAsState()
     val context = LocalContext.current
 
+    // Color Animation
+    val infiniteTransition = rememberInfiniteTransition()
+    val textColor by infiniteTransition.animateColor(
+        initialValue = Color.Black,
+        targetValue = Color.White,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 4000, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        )
+    )
+
+    // Font Family Animation
+    val fontFamilies = listOf(
+        FontFamily.SansSerif,
+        FontFamily.Monospace,
+        FontFamily.Serif,
+        FontFamily.Cursive,
+        FontFamily.Default
+    )
+    val fontFamilyNames = listOf("SansSerif", "Monospace", "Serif","Cursive", "Default")
+    val transition = rememberInfiniteTransition()
+    val fontFamilyIndex by transition.animateValue(
+        initialValue = 0,
+        targetValue = fontFamilies.size - 1,
+        typeConverter = Int.VectorConverter,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 1000, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        )
+    )
+    val currentFontFamily = fontFamilies[fontFamilyIndex]
+
+    // Icon Animation
+    val icons = listOf(
+        Icons.Filled.KeyboardArrowLeft,
+        Icons.Filled.KeyboardArrowRight,
+        Icons.Filled.KeyboardArrowUp,
+        Icons.Filled.KeyboardArrowDown
+    )
+    var currentIndex by remember { mutableStateOf(0) }
+    val transitionAnimation = infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 0.5f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 4000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        )
+    )
+    val animationProgress = transitionAnimation.value
+    val nextIndex = (currentIndex + 1) % icons.size
+    val interpolatedIndex = (animationProgress * icons.size).toInt()
+    val displayedIcon =
+        if (interpolatedIndex % icons.size == 0) icons[currentIndex] else icons[nextIndex]
+    LaunchedEffect(animationProgress) {
+        if (animationProgress >= 1f) {
+            currentIndex = (currentIndex + 1) % icons.size
+        }
+    }
+
     LaunchedEffect(Unit) {
-        authViewModel.checkAuthState() // This checks if the user is already authenticated
+        authViewModel.checkAuthState()
     }
 
     LaunchedEffect(authState.value) {
@@ -84,225 +119,208 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel) {
             is AuthState.RedirectToHOD -> {
                 Toast.makeText(context, "Redirecting to HOD Screen", Toast.LENGTH_SHORT).show()
                 navController.navigate("hodScreen") {
-                    popUpTo("login") { inclusive = true } // Remove login from back stack
+                    popUpTo("login") { inclusive = true }
                 }
             }
+
             is AuthState.RedirectToDoctor -> {
                 Toast.makeText(context, "Redirecting to Doctor Screen", Toast.LENGTH_SHORT).show()
                 navController.navigate("doctorScreen") {
                     popUpTo("login") { inclusive = true }
                 }
             }
+
             is AuthState.RedirectToOptometrist -> {
-                Toast.makeText(context, "Redirecting to Optometrist Screen", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "Redirecting to Optometrist Screen", Toast.LENGTH_SHORT)
+                    .show()
                 navController.navigate("optometristScreen") {
                     popUpTo("login") { inclusive = true }
                 }
             }
+
             is AuthState.RedirectToReceptionist -> {
-                Toast.makeText(context, "Redirecting to Receptionist Screen", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "Redirecting to Receptionist Screen", Toast.LENGTH_SHORT)
+                    .show()
                 navController.navigate("receptionistScreen") {
                     popUpTo("login") { inclusive = true }
                 }
             }
+
             is AuthState.Error -> {
-                Toast.makeText(context, (authState.value as AuthState.Error).message, Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    context,
+                    (authState.value as AuthState.Error).message,
+                    Toast.LENGTH_SHORT
+                ).show()
             }
+
             else -> {
-                // No action, could still be loading or uninitialized
                 Toast.makeText(context, "Awaiting login", Toast.LENGTH_SHORT).show()
             }
         }
     }
 
-
-
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(top = 15.dp)
-    ) {
-        // Background with circles and gradient
-        Canvas(modifier = Modifier.fillMaxSize()) {
-            val width = size.width
-            val height = size.height
-
+    Box(modifier = Modifier.fillMaxSize()) {
+        Canvas(
+            modifier = Modifier.fillMaxSize()
+        ) {
             drawCircle(
-                brush = Brush.verticalGradient(
-                    colors = listOf(Color(0xFF39A6EE), Color(0xFF39A6EE))
+                brush = Brush.radialGradient(
+                    listOf(Color(0xFFB0E0E6), Color.Transparent),
+                    radius = 3500f
                 ),
-                radius = height / 1.2f,
-                center = Offset(x = width / 2, y = height + 50)
-            )
-
-            drawCircle(
-                brush = Brush.verticalGradient(
-                    colors = listOf(Color(0xFF1242E6), Color(0xFF39A6EE))
-                ),
-                radius = height / 1.5f,
-                center = Offset(x = width / 2, y = height - 50)
-            )
-
-            drawCircle(
-                brush = Brush.verticalGradient(
-                    colors = listOf(Color(0xFF000825), Color(0xFF001F8B))
-                ),
-                radius = height / 1.8f,
-                center = Offset(x = width / 2, y = height - 10)
+                center = Offset(x = size.width * 0.75f, y = size.height / 2),
+                radius = size.minDimension * 2.5f
             )
         }
 
         Box(
             modifier = Modifier
-                .size(230.dp)  // Box size
-                .offset(x = (-50).dp, y = (-70).dp)
-                .blur(6.dp)
-                .graphicsLayer {
-                    clip = true  // Enable clipping to the shape
-                    shape = CircleShape  // Define the shape as a circle
-                }
-                .background(color = Color(0xFF357BDF).copy(alpha = 0.6f), shape = CircleShape) // Add background color with shape and alpha
-        )
-        Column(
-            modifier = Modifier
-                .padding(16.dp)
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 20.dp)
-                    .offset(x = -10.dp, y = 20.dp),
-                horizontalArrangement = Arrangement.Start,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
-                    contentDescription = "Back",
-                    modifier = Modifier
-                        .clickable { navController.navigate("home") }
-                        .size(50.dp)
-                )
-
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(text = "Log in", fontSize = 24.sp)
-                Spacer(modifier = Modifier.width(8.dp))
-            }
-            Row (modifier = Modifier.fillMaxWidth()
-                .offset(y = -80.dp),
-                horizontalArrangement = Arrangement.End
-            ){
-
-                Image(
-                    painter = painterResource(id = R.drawable.login),
-                    contentDescription = "Side logo",
-                    modifier = Modifier
-                        .size(150.dp)
-                )
-            }
-        }
-
-
-
-
-        Column (
-            modifier = Modifier
                 .fillMaxSize()
-                .padding(30.dp)
-                .offset(y = 450.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ){
-            // Email TextField
+                .padding(top = 70.dp)
+        ) {
 
-            var email by rememberSaveable {
-                mutableStateOf("")
-            }
-            OutlinedTextField(
-                value = email,
-                onValueChange = { email = it },
-                label = { Text("Email") },
-                modifier = Modifier.fillMaxWidth(),
-                leadingIcon = {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+
+                Row(
+                    horizontalArrangement = Arrangement.Start,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+
                     Icon(
-                        imageVector = Icons.Default.Email,
-                        contentDescription = "Email Icon"
+                        imageVector = displayedIcon,
+                        contentDescription = "Arrow",
+                        tint = Color.Black,
+                        modifier = Modifier
+                            .size(50.dp)
+                            .alpha(transitionAnimation.value)
+                            .clickable { navController.navigate("home") }
                     )
-                },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedTextColor = Color.Black,
-                    focusedLabelColor = Color.White,
-                    focusedPlaceholderColor = Color.Black,
-                    focusedContainerColor = Color.White,
-                    unfocusedContainerColor = Color.White,
-                    focusedBorderColor = Color.White,
-                    unfocusedBorderColor = Color.White
-                ),
-                maxLines = 1
-            )
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Password TextField
-            var password by rememberSaveable { mutableStateOf("") }
-            var passwordVisible by remember { mutableStateOf(false) }
-            OutlinedTextField(
-                value = password,
-                onValueChange = { password = it },
-                label = { Text("Password") },
-                modifier = Modifier.fillMaxWidth(),
-                leadingIcon = {
-                    Icon(
-                        imageVector = Icons.Default.Lock,
-                        contentDescription = "Password Icon"
+                    Text(
+                        text = "Log In",
+                        color = Color.Black,
+                        fontFamily = currentFontFamily,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 56.sp,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp)
                     )
-                },
-                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                trailingIcon = {
-                    val image = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
-                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                        Icon(imageVector = image, contentDescription = "Toggle Password Visibility")
+                }
+                Spacer(modifier = Modifier.height(150.dp))
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(30.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    // Email TextField
+                    var email by rememberSaveable {
+                        mutableStateOf("")
                     }
-                },
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedTextColor = Color.Black,
-                    focusedLabelColor = Color.White,
-                    focusedPlaceholderColor = Color.Black,
-                    focusedContainerColor = Color.White,
-                    unfocusedContainerColor = Color.White,
-                    focusedBorderColor = Color.White,
-                    unfocusedBorderColor = Color.White
-                ),
-                maxLines = 1
-            )
+                    OutlinedTextField(
+                        value = email,
+                        onValueChange = { email = it },
+                        label = { Text("Email") },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(shape = RoundedCornerShape(15.dp)),
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.Email,
+                                contentDescription = "Email Icon"
+                            )
+                        },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = Color.Black,
+                            focusedLabelColor = Color.White,
+                            focusedPlaceholderColor = Color.Black,
+                            focusedContainerColor = Color.White,
+                            unfocusedContainerColor = Color.White,
+                            focusedBorderColor = Color.White,
+                            unfocusedBorderColor = Color.White
+                        ),
+                        maxLines = 1
+                    )
 
-            Spacer(modifier = Modifier.height(72.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
 
-            ElevatedButton(
-                onClick = { authViewModel.login(email, password) },
-                colors = ButtonDefaults.elevatedButtonColors(Color(0xFF1F86FF)),
-                modifier = Modifier
-                    .height(50.dp)
-                    .width(170.dp),
-                elevation = ButtonDefaults.buttonElevation(
-                    defaultElevation = 20.dp,
-                    pressedElevation = 15.dp
-                )
-            ) {
-                Text(
-                    text = "Log in",
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 20.sp
-                )
-            }
-            
-            Spacer(modifier = Modifier.height(16.dp))
+                    // Password TextField
+                    var password by rememberSaveable { mutableStateOf("") }
+                    var passwordVisible by remember { mutableStateOf(false) }
+                    OutlinedTextField(
+                        value = password,
+                        onValueChange = { password = it },
+                        label = { Text("Password") },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(shape = RoundedCornerShape(15.dp)),
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.Lock,
+                                contentDescription = "Password Icon"
+                            )
+                        },
+                        visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                        trailingIcon = {
+                            val image =
+                                if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
+                            IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                                Icon(
+                                    imageVector = image,
+                                    contentDescription = "Toggle Password Visibility"
+                                )
+                            }
+                        },
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = Color.Black,
+                            focusedLabelColor = Color.White,
+                            focusedPlaceholderColor = Color.Black,
+                            focusedContainerColor = Color.White,
+                            unfocusedContainerColor = Color.White,
+                            focusedBorderColor = Color.White,
+                            unfocusedBorderColor = Color.White
+                        ),
+                        maxLines = 1
+                    )
 
-            Row {
-                Text(text = "Don't have an account? ", color = Color.White)
-                Text(text = "SignUp", color = Color.White, modifier = Modifier.clickable { navController.navigate("signup") })
+                    Spacer(modifier = Modifier.height(72.dp))
 
+                    ElevatedButton(
+                        onClick = { authViewModel.login(email, password) },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFA500)),
+                        modifier = Modifier
+                            .height(50.dp)
+                            .width(170.dp),
+                        elevation = ButtonDefaults.buttonElevation(
+                            defaultElevation = 20.dp,
+                            pressedElevation = 15.dp
+                        )
+                    ) {
+                        Text(
+                            text = "Log in",
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 20.sp
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Row {
+                        Text(text = "Don't have an account? ", color = Color.White)
+                        Text(
+                            text = "SignUp",
+                            color = textColor,
+                            textDecoration = TextDecoration.Underline,
+                            modifier = Modifier.clickable { navController.navigate("signup") })
+                    }
+                }
             }
         }
     }
