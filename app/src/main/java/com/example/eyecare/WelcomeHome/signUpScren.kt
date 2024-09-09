@@ -137,216 +137,174 @@ fun SignUpScreen(navController: NavController, authViewModel: AuthViewModel) {
                 )
             }
         }
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(10.dp)
-                    .offset(y = 180.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(15.dp)
-            ) {
-                item {
-                    OutlinedTextField(
-                        value = email,
-                        onValueChange = { email = it },
-                        label = { Text("Email") },
-                        modifier = Modifier.fillMaxWidth(),
-                        leadingIcon = {
-                            Icon(
-                                imageVector = Icons.Default.Email,
-                                contentDescription = "Email Icon"
-                            )
-                        },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedTextColor = Color.Black,
-                            focusedLabelColor = Color.Black,
-                            focusedPlaceholderColor = Color.Black,
-                            focusedContainerColor = Color.White,
-                            unfocusedContainerColor = Color.White,
-                            focusedBorderColor = Color.White,
-                            unfocusedBorderColor = Color.White
-                        ),
-                        maxLines = 1
-                    )
-                }
-
-                item {
-                    var passwordVisible by remember { mutableStateOf(false) }
-                    OutlinedTextField(
-                        value = password,
-                        onValueChange = { password = it },
-                        label = { Text("Password") },
-                        modifier = Modifier.fillMaxWidth(),
-                        leadingIcon = {
-                            Icon(
-                                imageVector = Icons.Default.Lock,
-                                contentDescription = "Password Icon"
-                            )
-                        },
-                        visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                        trailingIcon = {
-                            val image =
-                                if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
-                            IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                                Icon(
-                                    imageVector = image,
-                                    contentDescription = "Toggle Password Visibility"
-                                )
-                            }
-                        },
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedTextColor = Color.Black,
-                            focusedLabelColor = Color.Black,
-                            focusedPlaceholderColor = Color.Black,
-                            focusedContainerColor = Color.White,
-                            unfocusedContainerColor = Color.White,
-                            focusedBorderColor = Color.White,
-                            unfocusedBorderColor = Color.White
-                        ),
-                        maxLines = 1
-                    )
-                }
-
-                item {
-                    OutlinedTextField(
-                        value = confirmPassword,
-                        onValueChange = { confirmPassword = it },
-                        label = { Text("Confirm Password") },
-                        modifier = Modifier.fillMaxWidth(),
-                        leadingIcon = {
-                            Icon(
-                                imageVector = Icons.Default.Lock,
-                                contentDescription = "Confirm Password Icon"
-                            )
-                        },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedTextColor = Color.Black,
-                            focusedLabelColor = Color.Black,
-                            focusedPlaceholderColor = Color.Black,
-                            focusedContainerColor = Color.White,
-                            unfocusedContainerColor = Color.White,
-                            focusedBorderColor = Color.White,
-                            unfocusedBorderColor = Color.White
-                        ),
-                        maxLines = 1
-                    )
-                }
-
-                item {
-                        Row(verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier
-                                .background(color = Color.White)
-                                .clip(
-                                    RoundedCornerShape(15.dp)
-                                )) {
-                            Text(text = "Title", fontSize = 18.sp)
-                            listOf("Mr.", "Mrs.", "Ms.", "Dr.").forEach { title ->
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    RadioButton(
-                                        selected = selectedTitle == title,
-                                        onClick = { selectedTitle = title }
-                                    )
-                                    Text(text = title, modifier = Modifier.padding(end = 8.dp))
-                                }
-                            }
-                        }
-
-                }
-
-                item {
-                    OutlinedTextField(
-                        value = name,
-                        onValueChange = { name = it },
-                        label = { Text("Name") },
-                        modifier = Modifier.fillMaxWidth(),
-                        leadingIcon = {
-                            Icon(
-                                imageVector = Icons.Default.Person,
-                                contentDescription = "Name Icon"
-                            )
-                        },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedTextColor = Color.Black,
-                            focusedLabelColor = Color.Black,
-                            focusedPlaceholderColor = Color.Black,
-                            focusedContainerColor = Color.White,
-                            unfocusedContainerColor = Color.White,
-                            focusedBorderColor = Color.White,
-                            unfocusedBorderColor = Color.White
-                        ),
-                        maxLines = 1
-                    )
-                }
-
-                item {
-                    Box {
-                        OutlinedTextField(
-                            value = selectedRole,
-                            onValueChange = { selectedRole = it },
-                            label = { Text("Select Role") },
-                            readOnly = true,
-                            modifier = Modifier.fillMaxWidth(),
-                            leadingIcon = {
-                                Icon(
-                                    imageVector = Icons.Default.AccountBox,
-                                    contentDescription = "Role Icon"
-                                )
-                            },
-                            trailingIcon = {
-                                Icon(
-                                    imageVector = Icons.Filled.ArrowDropDown,
-                                    contentDescription = "Dropdown Arrow",
-                                    modifier = Modifier.clickable { expanded = !expanded }
-                                )
-                            },
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedTextColor = Color.Black,
-                                focusedLabelColor = Color.Black,
-                                focusedPlaceholderColor = Color.Black,
-                                focusedContainerColor = Color.White,
-                                unfocusedContainerColor = Color.White,
-                                focusedBorderColor = Color.White,
-                                unfocusedBorderColor = Color.White
-                            )
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(10.dp)
+                .offset(y = 180.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(15.dp)
+        ) {
+            item {
+                OutlinedTextField(
+                    value = email,
+                    onValueChange = { email = it },
+                    label = { Text("Email") },
+                    modifier = Modifier.fillMaxWidth(),
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.Email,
+                            contentDescription = "Email Icon"
                         )
+                    },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = Color.Black,
+                        focusedLabelColor = Color.Black,
+                        focusedPlaceholderColor = Color.Black,
+                        focusedContainerColor = Color.White,
+                        unfocusedContainerColor = Color.White,
+                        focusedBorderColor = Color.White,
+                        unfocusedBorderColor = Color.White
+                    ),
+                    maxLines = 1
+                )
+            }
 
-                        DropdownMenu(
-                            expanded = expanded,
-                            onDismissRequest = { expanded = false },
-                            modifier = Modifier.fillMaxWidth(.865f)
+            item {
+                var passwordVisible by remember { mutableStateOf(false) }
+                OutlinedTextField(
+                    value = password,
+                    onValueChange = { password = it },
+                    label = { Text("Password") },
+                    modifier = Modifier.fillMaxWidth(),
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.Lock,
+                            contentDescription = "Password Icon"
+                        )
+                    },
+                    visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                    trailingIcon = {
+                        val image =
+                            if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
+                        IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                            Icon(
+                                imageVector = image,
+                                contentDescription = "Toggle Password Visibility"
+                            )
+                        }
+                    },
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = Color.Black,
+                        focusedLabelColor = Color.Black,
+                        focusedPlaceholderColor = Color.Black,
+                        focusedContainerColor = Color.White,
+                        unfocusedContainerColor = Color.White,
+                        focusedBorderColor = Color.White,
+                        unfocusedBorderColor = Color.White
+                    ),
+                    maxLines = 1
+                )
+            }
+
+            item {
+                OutlinedTextField(
+                    value = confirmPassword,
+                    onValueChange = { confirmPassword = it },
+                    label = { Text("Confirm Password") },
+                    modifier = Modifier.fillMaxWidth(),
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.Lock,
+                            contentDescription = "Confirm Password Icon"
+                        )
+                    },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = Color.Black,
+                        focusedLabelColor = Color.Black,
+                        focusedPlaceholderColor = Color.Black,
+                        focusedContainerColor = Color.White,
+                        unfocusedContainerColor = Color.White,
+                        focusedBorderColor = Color.White,
+                        unfocusedBorderColor = Color.White
+                    ),
+                    maxLines = 1
+                )
+            }
+
+            item {
+                Row(verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .background(color = Color.White)
+                        .clip(
+                            RoundedCornerShape(15.dp)
+                        )) {
+                    Text(text = "Title", fontSize = 18.sp)
+                    listOf("Mr.", "Mrs.", "Ms.", "Dr.").forEach { title ->
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            roles.forEach { role ->
-                                DropdownMenuItem(
-                                    text = { Text(role) },
-                                    onClick = {
-                                        selectedRole = role
-                                        expanded = false
-                                    }
-                                )
-                            }
+                            RadioButton(
+                                selected = selectedTitle == title,
+                                onClick = { selectedTitle = title }
+                            )
+                            Text(text = title, modifier = Modifier.padding(end = 8.dp))
                         }
                     }
                 }
 
-                item {
+            }
+
+            item {
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { name = it },
+                    label = { Text("Name") },
+                    modifier = Modifier.fillMaxWidth(),
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.Person,
+                            contentDescription = "Name Icon"
+                        )
+                    },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = Color.Black,
+                        focusedLabelColor = Color.Black,
+                        focusedPlaceholderColor = Color.Black,
+                        focusedContainerColor = Color.White,
+                        unfocusedContainerColor = Color.White,
+                        focusedBorderColor = Color.White,
+                        unfocusedBorderColor = Color.White
+                    ),
+                    maxLines = 1
+                )
+            }
+
+            item {
+                Box {
                     OutlinedTextField(
-                        value = phone,
-                        onValueChange = { phone = it },
-                        label = { Text("Phone Number") },
+                        value = selectedRole,
+                        onValueChange = { selectedRole = it },
+                        label = { Text("Select Role") },
+                        readOnly = true,
                         modifier = Modifier.fillMaxWidth(),
                         leadingIcon = {
                             Icon(
-                                imageVector = Icons.Default.Phone,
-                                contentDescription = "Phone Icon"
+                                imageVector = Icons.Default.AccountBox,
+                                contentDescription = "Role Icon"
                             )
                         },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+                        trailingIcon = {
+                            Icon(
+                                imageVector = Icons.Filled.ArrowDropDown,
+                                contentDescription = "Dropdown Arrow",
+                                modifier = Modifier.clickable { expanded = !expanded }
+                            )
+                        },
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedTextColor = Color.Black,
                             focusedLabelColor = Color.Black,
@@ -355,36 +313,78 @@ fun SignUpScreen(navController: NavController, authViewModel: AuthViewModel) {
                             unfocusedContainerColor = Color.White,
                             focusedBorderColor = Color.White,
                             unfocusedBorderColor = Color.White
-                        ),
-                        maxLines = 1
-                    )
-                }
-
-                item {
-                    ElevatedButton(
-                        onClick = {
-                            val fullName = "$selectedTitle $name"
-                            authViewModel.signup(
-                                email,
-                                password,
-                                confirmPassword,
-                                fullName,
-                                phone,
-                                selectedRole
-                            )
-                        },
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(40.dp))
-                            .width(150.dp)
-                            .height(40.dp),
-                        elevation = ButtonDefaults.buttonElevation(
-                            defaultElevation = 20.dp,
-                            pressedElevation = 15.dp
                         )
+                    )
+
+                    DropdownMenu(
+                        expanded = expanded,
+                        onDismissRequest = { expanded = false },
+                        modifier = Modifier.fillMaxWidth(.865f)
                     ) {
-                        Text(text = "Sign Up", fontSize = 20.sp, color = Color.Black)
+                        roles.forEach { roles ->
+                            DropdownMenuItem(
+                                text = { Text(roles) },
+                                onClick = {
+                                    selectedRole = roles
+                                    expanded = false
+                                }
+                            )
+                        }
                     }
+                }
+            }
+
+            item {
+                OutlinedTextField(
+                    value = phone,
+                    onValueChange = { phone = it },
+                    label = { Text("Phone Number") },
+                    modifier = Modifier.fillMaxWidth(),
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.Phone,
+                            contentDescription = "Phone Icon"
+                        )
+                    },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = Color.Black,
+                        focusedLabelColor = Color.Black,
+                        focusedPlaceholderColor = Color.Black,
+                        focusedContainerColor = Color.White,
+                        unfocusedContainerColor = Color.White,
+                        focusedBorderColor = Color.White,
+                        unfocusedBorderColor = Color.White
+                    ),
+                    maxLines = 1
+                )
+            }
+
+            item {
+                ElevatedButton(
+                    onClick = {
+                        val fullName = "$selectedTitle $name"
+                        authViewModel.signup(
+                            email,
+                            password,
+                            confirmPassword,
+                            fullName,
+                            phone,
+                            selectedRole
+                        )
+                    },
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(40.dp))
+                        .width(150.dp)
+                        .height(40.dp),
+                    elevation = ButtonDefaults.buttonElevation(
+                        defaultElevation = 20.dp,
+                        pressedElevation = 15.dp
+                    )
+                ) {
+                    Text(text = "Sign Up", fontSize = 20.sp, color = Color.Black)
                 }
             }
         }
     }
+}

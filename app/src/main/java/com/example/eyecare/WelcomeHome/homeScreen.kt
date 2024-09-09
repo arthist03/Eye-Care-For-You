@@ -89,7 +89,7 @@ fun homeScreen(navController: NavController, authViewModel: AuthViewModel) {
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            Text(text = "Eye - Care For You", fontSize = 40.sp, color = Color(0xFF6C63FF))
+            Text(text = "Eye - Care For You", fontSize = 34.sp, color = Color(0xFF6C63FF))
 
             Spacer(modifier = Modifier.height(10.dp))
 

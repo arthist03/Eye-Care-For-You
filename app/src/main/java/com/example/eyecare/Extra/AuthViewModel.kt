@@ -93,16 +93,16 @@ class AuthViewModel : ViewModel() {
         val user = hashMapOf(
             "name" to name,
             "email" to email,
-            "password" to password,  // Storing encrypted password if needed
+            "password" to password,  // Consider encrypting passwords before storing.
             "phone" to phone,
-            "role" to role
+            "role" to role.uppercase()  // Convert role to uppercase.
         )
 
         firestore.collection("users").document(userId).set(user)
             .addOnSuccessListener {
                 Log.d("AuthViewModel", "User data saved successfully")
                 // Redirect after signup based on role
-                when (role) {
+                when (role.uppercase()) {
                     "HOD" -> _authState.value = AuthState.RedirectToHOD
                     "DOCTOR" -> _authState.value = AuthState.RedirectToDoctor
                     "OPTOMETRIST" -> _authState.value = AuthState.RedirectToOptometrist
@@ -114,6 +114,7 @@ class AuthViewModel : ViewModel() {
                 _authState.value = AuthState.Error("Failed to save user data! Error: ${e.message}")
             }
     }
+
 
     fun signout() {
         auth.signOut()
