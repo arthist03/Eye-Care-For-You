@@ -316,6 +316,7 @@ fun PatientDetailsScreen(navController: NavController, patientId: String?) {
                                         Toast.makeText(context, "Update unsuccessful, try again!", Toast.LENGTH_SHORT).show()
                                     }
                             }
+                            navController.navigate("patientDetails/{patientId}")
                         },
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF39A6EE)),
                         modifier = Modifier.fillMaxWidth()  // Make button fill the width

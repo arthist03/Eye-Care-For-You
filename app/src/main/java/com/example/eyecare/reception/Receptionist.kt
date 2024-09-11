@@ -66,7 +66,7 @@ fun PageReception(navController: NavController, authViewModel: AuthViewModel) {
         Text(text = "Welcome To Reception Screen")
         Spacer(modifier = Modifier.height(20.dp))
 
-        ElevatedButton(onClick = { navController.navigate("patientDetails") }) {
+        ElevatedButton(onClick = { navController.navigate("patientDetails/{patientId}") }) {
             Text(text = "Enter Patient Details Manually")
         }
 
