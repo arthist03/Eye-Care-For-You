@@ -2,6 +2,7 @@ package com.example.eyecare.Opto.glassScreens
 
 import android.graphics.Paint
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
@@ -24,19 +25,30 @@ fun SeekerWithTextField() {
     var showSeeker by remember { mutableStateOf(false) }
     var seekerValue by remember { mutableStateOf(90) }
 
+    // Update textFieldValue when seekerValue changes
+    LaunchedEffect(seekerValue) {
+        textFieldValue = seekerValue.toString()
+    }
+
     Box(
         modifier = Modifier
-            .fillMaxSize()
+
+            .fillMaxWidth()
+
             .padding(16.dp),
-        contentAlignment = Alignment.Center
+
+                contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 OutlinedTextField(
                     value = textFieldValue,
                     onValueChange = { newValue ->
-                        textFieldValue = newValue
-                        seekerValue = newValue.toIntOrNull() ?: 0
+                        val intValue = newValue.toIntOrNull()
+                        if (intValue != null && intValue in 0..180) {
+                            seekerValue = intValue
+                        }
+                        textFieldValue = newValue // Allow empty value as well
                     },
                     modifier = Modifier.weight(1f),
                     label = { Text("Enter Angle") },
@@ -52,12 +64,11 @@ fun SeekerWithTextField() {
                 CustomSemiCircularSeeker(
                     modifier = Modifier.size(250.dp),
                     initialValue = seekerValue,
-                    primaryColor = Color.Green,
+                    primaryColor = Color.Black,
                     secondaryColor = Color.LightGray,
                     circleRadius = 100f,
                     onPositionChange = { newValue ->
                         seekerValue = newValue
-                        textFieldValue = newValue.toString()
                     }
                 )
             }
@@ -78,6 +89,11 @@ fun CustomSemiCircularSeeker(
 ) {
     var circleCenter by remember { mutableStateOf(Offset.Zero) }
     var positionValue by remember { mutableStateOf(initialValue) }
+
+    // Update positionValue when initialValue changes
+    LaunchedEffect(initialValue) {
+        positionValue = initialValue
+    }
 
     Box(
         modifier = modifier
@@ -109,11 +125,11 @@ fun CustomSemiCircularSeeker(
 
             // Foreground arc
             drawArc(
-                color = Color.Blue,
+                color = Color(0xFF3DB69E),
                 startAngle = 180f,
                 sweepAngle = (positionValue - minValue) * 180f / (maxValue - minValue),
                 useCenter = false,
-                style = Stroke(width = circleThickness, cap = StrokeCap.Round),
+                style = Stroke(width = circleThickness * 1.5f, cap = StrokeCap.Round),
                 size = Size(width = circleRadius * 5f, height = circleRadius * 5f),
                 topLeft = Offset((circleRadius) , (circleRadius))
             )
@@ -140,9 +156,18 @@ fun CustomSemiCircularSeeker(
 
 fun calculateTouchAngle(touchPoint: Offset, center: Offset, radius: Float): Float {
     val dx = touchPoint.x - center.x
-    val dy = center.y - touchPoint.y  // Reverse the y-axis
-    val angle = Math.toDegrees(Math.atan2(dy.toDouble(), dx.toDouble())).toFloat()
-    return if (angle < 0) 360f + angle else angle
+    val dy = center.y - touchPoint.y  // Keep this to reverse y-axis
+
+    var angle = Math.toDegrees(Math.atan2(dy.toDouble(), dx.toDouble())).toFloat()
+
+    // Normalize the angle to ensure smooth movement between 0 and 180 degrees
+    angle = if (angle < 0) angle + 360 else angle
+
+    // Invert angle for correct clockwise rotation (since default angles work counterclockwise)
+    angle = 180f - angle
+
+    // Ensure the angle stays in the [0, 180] range
+    return angle.coerceIn(0f, 180f)
 }
 
 @Preview(showBackground = true)

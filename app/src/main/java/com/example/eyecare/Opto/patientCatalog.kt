@@ -35,6 +35,8 @@ fun PatientCatalogPage(navController: NavController) {
     val db = FirebaseFirestore.getInstance()
 
     var patients by remember { mutableStateOf(listOf<Patient>()) }
+    var filteredPatients by remember { mutableStateOf(listOf<Patient>()) } // List of filtered patients
+    var searchQuery by remember { mutableStateOf("") } // Holds the search query
     var optoName by remember { mutableStateOf("Loading...") }
     var optoPosition by remember { mutableStateOf("Loading...") }
     var isLoading by remember { mutableStateOf(true) }
@@ -80,11 +82,24 @@ fun PatientCatalogPage(navController: NavController) {
                 } ?: emptyList()
 
                 patients = fetchedPatients
+                filteredPatients = fetchedPatients // Initially show all patients
                 isLoading = false
             }
 
         onDispose {
             firestoreRegistration.remove()
+        }
+    }
+
+    // Update the filtered patients whenever search query changes
+    LaunchedEffect(searchQuery) {
+        filteredPatients = if (searchQuery.isEmpty()) {
+            patients
+        } else {
+            // Filter patients based on progressive letter matching
+            patients.filter { patient ->
+                patient.name.startsWith(searchQuery, ignoreCase = true)
+            }
         }
     }
 
@@ -103,7 +118,20 @@ fun PatientCatalogPage(navController: NavController) {
             navController = navController
         )
 
-        // Show loading, error message, or the list of patients
+        // Search Bar
+        OutlinedTextField(
+            value = searchQuery,
+            onValueChange = { searchQuery = it },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            label = { Text("Search patients") },
+            placeholder = { Text("Enter name") },
+            singleLine = true,
+            shape = RoundedCornerShape(25.dp), // Make the corners rounded
+        )
+
+        // Show loading, error message, or the list of filtered patients
         if (isLoading) {
             LoadingAnimation(
                 circleSize = 25.dp,
@@ -122,7 +150,7 @@ fun PatientCatalogPage(navController: NavController) {
                     .padding(top = 16.dp)
                     .fillMaxSize()
             ) {
-                items(patients) { patient ->
+                items(filteredPatients) { patient ->
                     PatientCard(patient = patient) {
                         // Navigate to patient details page with patient ID
                         navController.navigate("withGlassOpto/${patient.id}")
@@ -132,6 +160,8 @@ fun PatientCatalogPage(navController: NavController) {
         }
     }
 }
+
+
 
 
 // Patient data model

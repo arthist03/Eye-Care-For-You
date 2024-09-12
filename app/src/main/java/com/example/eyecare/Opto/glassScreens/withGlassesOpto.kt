@@ -215,35 +215,59 @@ fun withGlassOpto(navController: NavController, patientId: String) {
                                             label = { Text("Left Eye Magnitude") },
                                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                                         )
+                                        SeekerWithTextField()
                                         OutlinedTextField(
                                             value = rightCylindricalMag,
                                             onValueChange = { rightCylindricalMag = it },
                                             label = { Text("Right Eye Magnitude") },
                                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                                         )
+                                        SeekerWithTextField()
                                     }
                                 }
 
                             // Snellen Test with Vertical Slider
                             Text(text = "Snellen Test (6/x)")
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                VerticalSnellenSlider(
-                                    value = snellenLeft,
-                                    onValueChange = { snellenLeft = it },
-                                    label = "Left Eye",
-                                    modifier = Modifier.weight(1f)
-                                )
-                                Spacer(modifier = Modifier.width(16.dp))
-                                VerticalSnellenSlider(
-                                    value = snellenRight,
-                                    onValueChange = { snellenRight = it },
-                                    label = "Right Eye",
-                                    modifier = Modifier.weight(1f)
-                                )
-                            }
+                                Column {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween
+                                    ) {
+                                        VerticalSnellenSlider(
+                                            value = snellenLeft,
+                                            onValueChange = { snellenLeft = it },
+                                            label = "Left Eye",
+                                            modifier = Modifier.weight(1f)
+                                        )
+                                        Spacer(modifier = Modifier.width(16.dp))
+                                        VerticalSnellenSlider(
+                                            value = snellenRight,
+                                            onValueChange = { snellenRight = it },
+                                            label = "Right Eye",
+                                            modifier = Modifier.weight(1f)
+                                        )
+
+                                    }
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween
+                                    ) {
+                                        VerticalNearSlider(
+                                            value = snellenLeft,
+                                            onValueChange = { snellenLeft = it },
+                                            label = "Left Eye",
+                                            modifier = Modifier.weight(1f)
+                                        )
+                                        Spacer(modifier = Modifier.width(16.dp))
+                                        VerticalNearSlider(
+                                            value = snellenRight,
+                                            onValueChange = { snellenRight = it },
+                                            label = "Right Eye",
+                                            modifier = Modifier.weight(1f)
+                                        )
+                                    }
+
+                                }
 
                             Spacer(modifier = Modifier.height(20.dp))
 
@@ -253,9 +277,7 @@ fun withGlassOpto(navController: NavController, patientId: String) {
                                 horizontalArrangement = Arrangement.SpaceEvenly
                             ) {
                                 ElevatedButton(onClick = {
-                                    navController.navigate("withoutGlassOpto/${patient.id}") {
-                                        popUpTo("patientDetails/${patient.id}") { inclusive = true }
-                                    }
+                                    navController.navigate("OptoPatients")
                                 }) {
                                     Text(text = "Back")
                                 }
@@ -277,9 +299,7 @@ fun withGlassOpto(navController: NavController, patientId: String) {
                                         context = context,
                                         screenType = "withGlassOpto"
                                     )
-                                    navController.navigate("withoutGlassOpto/${patient.id}") {
-                                        popUpTo("patientDetails/${patient.id}") { inclusive = true }
-                                    }
+                                    navController.navigate("withoutGlassOpto/${patient.id}")
                                 }) {
                                     Text(text = "Save Examination Details")
                                 }
