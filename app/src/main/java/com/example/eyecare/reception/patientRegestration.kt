@@ -64,6 +64,25 @@ fun PatientDetailsScreen(navController: NavController, patientId: String?) {
 
     val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
 
+    LaunchedEffect(patientId) {
+        val patientDocRef = db.collection("patients").document(patientId ?: "")
+
+        patientDocRef.get().addOnSuccessListener { document ->
+            if (document.exists()) {
+                name = TextFieldValue(document.getString("name") ?: "")
+                address = TextFieldValue(document.getString("address") ?: "")
+                phone = TextFieldValue(document.getString("phone") ?: "")
+                selectedGender = document.getString("gender") ?: "Male"
+            } else {
+                Toast.makeText(context, "Patient not found", Toast.LENGTH_LONG).show()
+            }
+        }.addOnFailureListener {
+            Toast.makeText(context, "Failed to fetch patient details", Toast.LENGTH_LONG).show()
+        }
+    }
+
+
+
     // Fetch receptionist details
     LaunchedEffect(currentUserId) {
         currentUserId?.let { userId ->
@@ -300,9 +319,11 @@ fun PatientDetailsScreen(navController: NavController, patientId: String?) {
                                 dateOfBirth = dateOfBirth,
                                 visitingDate = todayDate,
                                 db = db,
-                                navController = navController
+                                navController = navController,
+                                patientId= patientId
                             )
-                            navController.navigate(("receptionistScreen"))
+                            //navController.navigate(("receptionistScreen"))
+                            navController.popBackStack()
                         },
                         modifier = Modifier.fillMaxWidth()
                     ) {
@@ -324,7 +345,7 @@ fun calculateAge(dateOfBirth: LocalDate, visitingDate: LocalDate): String {
 suspend fun generateUniquePatientId(db: FirebaseFirestore): String {
     var uniqueId: String
     do {
-        uniqueId = (1..7)
+        uniqueId = (1..8)
             .map { "0123456789".random() }
             .joinToString("")
         val documentSnapshot = db.collection("patients").document(uniqueId).get().await()
@@ -342,7 +363,8 @@ fun savePatientData(
     dateOfBirth: LocalDate?,
     visitingDate: LocalDate,
     db: FirebaseFirestore,
-    navController: NavController
+    navController: NavController,
+    patientId: String?
 ) {
     // Use coroutine to handle Firestore operations
     CoroutineScope(Dispatchers.IO).launch {
@@ -371,7 +393,7 @@ fun savePatientData(
             }
 
             // Navigate back or show success feedback
-            navController.popBackStack()
+
         } catch (e: Exception) {
             Log.e("PatientDetailsScreen", "Error saving patient data", e)
             withContext(Dispatchers.Main) {

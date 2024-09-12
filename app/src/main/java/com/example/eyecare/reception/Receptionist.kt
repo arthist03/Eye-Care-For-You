@@ -72,14 +72,14 @@ fun PageReception(navController: NavController, authViewModel: AuthViewModel) {
 
                             // Perform additional search on ID
                             db.collection("patients")
-                                .whereGreaterThanOrEqualTo("id", query)
-                                .whereLessThanOrEqualTo("id", query + "\uf8ff")
+                                .whereGreaterThanOrEqualTo("patientId", query)
+                                .whereLessThanOrEqualTo("patientId", query + "\uf8ff")
                                 .get()
                                 .addOnSuccessListener { idDocuments ->
                                     val idResults = idDocuments.map { it.data }
 
                                     // Combine all search results and remove duplicates by patient ID
-                                    searchResults = (nameResults + phoneResults + idResults).distinctBy { it["id"] }
+                                    searchResults = (nameResults + phoneResults + idResults).distinctBy { it["patientId"] }
                                 }
                                 .addOnFailureListener {
                                     Toast.makeText(context, "Search by ID failed", Toast.LENGTH_SHORT).show()
@@ -165,10 +165,9 @@ fun PageReception(navController: NavController, authViewModel: AuthViewModel) {
 
                     Spacer(modifier = Modifier.height(20.dp))
 
-                    // Search results list
                     LazyColumn {
                         items(searchResults) { result ->
-                            val patientId = result["id"] as? String ?: ""
+                            val patientId = result["patientId"] as? String ?: ""
                             val patientName = result["name"] as? String ?: ""
 
                             Card(
@@ -176,9 +175,13 @@ fun PageReception(navController: NavController, authViewModel: AuthViewModel) {
                                     .fillMaxWidth()
                                     .padding(8.dp)
                                     .clickable {
-                                        navController.navigate("patientDetails/${patientId}")
+                                        if (patientId.isNotEmpty()) {
+                                            navController.navigate("patientDetails/$patientId")
+                                        } else {
+                                            Toast.makeText(context, "Invalid Patient ID", Toast.LENGTH_SHORT).show()
+                                        }
                                     },
-                                elevation = CardDefaults.elevatedCardElevation(8.dp) // Updated elevation
+                                elevation = CardDefaults.elevatedCardElevation(8.dp)
                             ) {
                                 Column(
                                     modifier = Modifier
@@ -189,10 +192,10 @@ fun PageReception(navController: NavController, authViewModel: AuthViewModel) {
                                     Text(text = "ID: $patientId", fontSize = 16.sp)
                                 }
                             }
-
-
                         }
                     }
+
+
 
 
 
