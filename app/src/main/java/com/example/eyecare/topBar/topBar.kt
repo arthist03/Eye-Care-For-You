@@ -3,22 +3,10 @@ package com.example.eyecare.topBar
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.AccountCircle
-import androidx.compose.material3.FabPosition
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -30,7 +18,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -40,44 +27,41 @@ import com.example.eyecare.Extra.AuthState
 import com.example.eyecare.Extra.AuthViewModel
 
 @Composable
-fun topBarId(name: String, position: String, screenName:String,authViewModel: AuthViewModel,navController:NavController) {
+fun topBarId(name: String, position: String, screenName: String, authViewModel: AuthViewModel, navController: NavController) {
     val authState = authViewModel.authState.observeAsState()
     val context = LocalContext.current
 
-
     LaunchedEffect(authState.value) {
-        when(authState.value){
-            is AuthState.UnAuthenticated-> navController.navigate("home")
-            is AuthState.Error -> Toast.makeText(context, (authState.value as AuthState.Error).message,
-                Toast.LENGTH_SHORT)
+        when (authState.value) {
+            is AuthState.UnAuthenticated -> navController.navigate("home")
+            is AuthState.Error -> Toast.makeText(context, (authState.value as AuthState.Error).message, Toast.LENGTH_SHORT).show()
             else -> Unit
         }
     }
 
-
-    Column (modifier = Modifier.statusBarsPadding()){
+    Column(modifier = Modifier.statusBarsPadding()) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(
-                    brush = Brush.verticalGradient(listOf(Color(0xFF1242E6), Color(0xFF39A6EE))),
-                    shape = RoundedCornerShape(bottomStart = 45.dp, bottomEnd = 45.dp), 0.9f,
+                    brush = Brush.verticalGradient(
+                        listOf(Color(0xFF29B2C4), Color(0xFFFFB0E0E6)) // Updated gradient colors
+                    ),
+                    shape = RoundedCornerShape(bottomStart = 45.dp, bottomEnd = 45.dp),
                 )
                 .padding(15.dp)
-                .size(130.dp),
+                .height(130.dp), // Adjusted height
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
                 imageVector = Icons.Default.AccountCircle,
                 contentDescription = "Pic",
-                modifier = Modifier
-                    .size(70.dp)
+                modifier = Modifier.size(70.dp)
             )
             Spacer(modifier = Modifier.size(25.dp))
 
             Column(
-                modifier = Modifier
-                    .fillMaxHeight(),
+                modifier = Modifier.fillMaxHeight(),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.Start
             ) {
@@ -85,19 +69,19 @@ fun topBarId(name: String, position: String, screenName:String,authViewModel: Au
                     text = name,
                     fontSize = 25.sp,
                     fontWeight = FontWeight.W500,
-                    color = Color.White
+                    color = Color.Black
                 )
                 Spacer(modifier = Modifier.size(4.dp))
                 Text(
                     text = position,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.W300,
-                    color = Color.White
+                    color = Color.Black
                 )
             }
             Spacer(modifier = Modifier.width(60.dp))
-            TextButton(onClick = {authViewModel.signout()}) {
-                Text(text = "Sign out", color = Color.White, textAlign = TextAlign.End)
+            TextButton(onClick = { authViewModel.signout() }) {
+                Text(text = "Sign out", color = Color.Black, textAlign = TextAlign.End)
             }
         }
         screenName(screenName = screenName)

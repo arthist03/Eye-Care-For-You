@@ -292,6 +292,7 @@ fun PatientDetailsScreen(navController: NavController, patientId: String?) {
 
                     ElevatedButton(
                         onClick = {
+                            val patientRandomId = (1000000..9999999).random()
                             val updatedPatientDetails = hashMapOf(
                                 "name" to name.text,
                                 "age" to age,
@@ -300,7 +301,8 @@ fun PatientDetailsScreen(navController: NavController, patientId: String?) {
                                 "gender" to selectedGender,
                                 "imageUri" to imageUri,
                                 "dateOfBirth" to dateOfBirth?.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
-                                "visitingDate" to todayDate?.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+                                "visitingDate" to todayDate?.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+                                "patientRandomId" to patientRandomId
                             )
 
                             patientId?.let { id ->
@@ -316,7 +318,7 @@ fun PatientDetailsScreen(navController: NavController, patientId: String?) {
                                         Toast.makeText(context, "Update unsuccessful, try again!", Toast.LENGTH_SHORT).show()
                                     }
                             }
-                            navController.navigate("patientDetails/{patientId}")
+                            navController.navigate("receptionistScreen")
                         },
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF39A6EE)),
                         modifier = Modifier.fillMaxWidth()  // Make button fill the width
