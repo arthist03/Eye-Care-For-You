@@ -133,7 +133,7 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel) {
             is AuthState.RedirectToOptometrist -> {
                 Toast.makeText(context, "Redirecting to Optometrist Screen", Toast.LENGTH_SHORT)
                     .show()
-                navController.navigate("optometristScreen") {
+                navController.navigate("OptoPatients") {
                     popUpTo("login") { inclusive = true }
                 }
             }

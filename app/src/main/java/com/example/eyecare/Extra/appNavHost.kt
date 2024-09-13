@@ -4,6 +4,8 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.eyecare.Doctor.doctorcatalog
+import com.example.eyecare.HOD.hodcatalog
 import com.example.eyecare.Opto.PatientCatalogPage
 import com.example.eyecare.Opto.PreviewScreen
 import com.example.eyecare.Opto.glassScreens.newGlassOpto
@@ -32,6 +34,8 @@ fun AppNavHost(authViewModel: AuthViewModel) {
         composable("optometristScreen") { pageOpto(navController, authViewModel) }
         composable("receptionistScreen") { PageReception(navController, authViewModel) }
         composable("OptoPatients"){ PatientCatalogPage(navController)}
+        composable("hodPatients"){ hodcatalog(navController) }
+        composable("doctorpatients"){ doctorcatalog(navController) }
 
         composable("patientDetails/{patientId}") { backStackEntry ->
             val patientId = backStackEntry.arguments?.getString("patientId")

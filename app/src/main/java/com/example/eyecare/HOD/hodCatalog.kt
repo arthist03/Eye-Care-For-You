@@ -1,4 +1,5 @@
-package com.example.eyecare.Opto
+package com.example.eyecare.HOD
+
 
 import android.util.Log
 import androidx.compose.foundation.Image
@@ -31,7 +32,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 
 @Composable
-fun PatientCatalogPage(navController: NavController) {
+fun hodcatalog(navController: NavController) {
     val db = FirebaseFirestore.getInstance()
 
     var patients by remember { mutableStateOf(listOf<Patient>()) }
@@ -50,11 +51,11 @@ fun PatientCatalogPage(navController: NavController) {
             val userDocRef = db.collection("users").document(userId)
             userDocRef.get().addOnSuccessListener { document ->
                 if (document != null && document.exists()) {
-                    optoName = document.getString("name") ?: "Optometrist"
-                    optoPosition = document.getString("role") ?: "Optometrist"
+                    optoName = document.getString("name") ?: "HOD"
+                    optoPosition = document.getString("role") ?: "HOD"
                 } else {
-                    optoName = "Optometrist"
-                    optoPosition = "Optometrist"
+                    optoName = "HOD"
+                    optoPosition = "HOD"
                 }
                 isLoading = false
             }.addOnFailureListener { exception ->

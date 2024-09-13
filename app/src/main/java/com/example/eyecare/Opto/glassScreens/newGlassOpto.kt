@@ -25,6 +25,9 @@ import com.example.eyecare.Opto.Patient
 import com.example.eyecare.topBar.topBarId
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @Composable
 fun newGlassOpto(navController: NavController, patientId: String) {
@@ -49,15 +52,23 @@ fun newGlassOpto(navController: NavController, patientId: String) {
     var rightCylindricalMag by remember { mutableStateOf("") }
     var snellenLeft by remember { mutableStateOf(6f) }
     var snellenRight by remember { mutableStateOf(6f) }
-var isCylindricalLens by remember {mutableStateOf(false)}
+    var isCylindricalLens by remember {mutableStateOf(false)}
 
 
-    // Fetch patient details from Firestore
     LaunchedEffect(patientId) {
+        val todayDate = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date())
+
         db.collection("patients").document(patientId).get()
             .addOnSuccessListener { document ->
                 if (document != null && document.exists()) {
-                    patientDetails = document.toObject(Patient::class.java)
+                    val patient = document.toObject(Patient::class.java)
+                    val visitingDate = document.getString("visitingDate") // Assuming visitingDate is stored as a string in "dd/MM/yyyy" format
+
+                    if (visitingDate == todayDate) {
+                        patientDetails = patient
+                    } else {
+                        errorMessage = "No patient visit scheduled for today."
+                    }
                 } else {
                     errorMessage = "Patient not found"
                 }
@@ -220,34 +231,58 @@ var isCylindricalLens by remember {mutableStateOf(false)}
                                             label = { Text("Left Eye Magnitude") },
                                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                                         )
+                                        SeekerWithTextField()
                                         OutlinedTextField(
                                             value = rightCylindricalMag,
                                             onValueChange = { rightCylindricalMag = it },
                                             label = { Text("Right Eye Magnitude") },
                                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                                         )
+                                        SeekerWithTextField()
                                     }
                                 }
 
                                 // Snellen Test with Vertical Slider
                                 Text(text = "Snellen Test (6/x)")
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween
-                                ) {
-                                    VerticalSnellenSlider(
-                                        value = snellenLeft,
-                                        onValueChange = { snellenLeft = it },
-                                        label = "Left Eye",
-                                        modifier = Modifier.weight(1f)
-                                    )
-                                    Spacer(modifier = Modifier.width(16.dp))
-                                    VerticalSnellenSlider(
-                                        value = snellenRight,
-                                        onValueChange = { snellenRight = it },
-                                        label = "Right Eye",
-                                        modifier = Modifier.weight(1f)
-                                    )
+                                Column {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween
+                                    ) {
+                                        VerticalSnellenSlider(
+                                            value = snellenLeft,
+                                            onValueChange = { snellenLeft = it },
+                                            label = "Left Eye",
+                                            modifier = Modifier.weight(1f)
+                                        )
+                                        Spacer(modifier = Modifier.width(16.dp))
+                                        VerticalSnellenSlider(
+                                            value = snellenRight,
+                                            onValueChange = { snellenRight = it },
+                                            label = "Right Eye",
+                                            modifier = Modifier.weight(1f)
+                                        )
+
+                                    }
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween
+                                    ) {
+                                        VerticalNearSlider(
+                                            value = snellenLeft,
+                                            onValueChange = { snellenLeft = it },
+                                            label = "Left Eye",
+                                            modifier = Modifier.weight(1f)
+                                        )
+                                        Spacer(modifier = Modifier.width(16.dp))
+                                        VerticalNearSlider(
+                                            value = snellenRight,
+                                            onValueChange = { snellenRight = it },
+                                            label = "Right Eye",
+                                            modifier = Modifier.weight(1f)
+                                        )
+                                    }
+
                                 }
 
                                 Spacer(modifier = Modifier.height(20.dp))
@@ -259,9 +294,6 @@ var isCylindricalLens by remember {mutableStateOf(false)}
                                 ) {
                                     ElevatedButton(onClick = {
                                         navController.navigate("withoutGlassOpto/${patient.id}") {
-                                            popUpTo("patientDetails/${patient.id}") {
-                                                inclusive = true
-                                            }
                                         }
                                     }) {
                                         Text(text = "Back")
@@ -284,11 +316,8 @@ var isCylindricalLens by remember {mutableStateOf(false)}
                                             context = context,
                                             screenType = "newGlassOpto"
                                         )
-                                        navController.navigate("OptoPatients") {
-                                            popUpTo("patientDetails/${patient.id}") {
-                                                inclusive = true
-                                            }
-                                        }
+                                        navController.navigate("OptoPatients")
+
                                     }) {
                                         Text(text = "Save Examination Details")
                                     }

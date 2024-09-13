@@ -64,7 +64,7 @@ fun SignUpScreen(navController: NavController, authViewModel: AuthViewModel) {
         when (authState.value) {
             is AuthState.RedirectToHOD -> navController.navigate("hodScreen")
             is AuthState.RedirectToDoctor -> navController.navigate("doctorScreen")
-            is AuthState.RedirectToOptometrist -> navController.navigate("optometristScreen")
+            is AuthState.RedirectToOptometrist -> navController.navigate("OptoPatients")
             is AuthState.RedirectToReceptionist -> navController.navigate("receptionistScreen")
             is AuthState.Error -> Toast.makeText(
                 context,

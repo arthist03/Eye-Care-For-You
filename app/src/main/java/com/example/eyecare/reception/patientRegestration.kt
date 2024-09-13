@@ -320,7 +320,8 @@ fun PatientDetailsScreen(navController: NavController, patientId: String?) {
                                 visitingDate = todayDate,
                                 db = db,
                                 navController = navController,
-                                patientId= patientId
+                                age = age,
+                                id= patientId
                             )
                             //navController.navigate(("receptionistScreen"))
                             navController.popBackStack()
@@ -364,13 +365,14 @@ fun savePatientData(
     visitingDate: LocalDate,
     db: FirebaseFirestore,
     navController: NavController,
-    patientId: String?
+    age: String,
+    id: String?
 ) {
     // Use coroutine to handle Firestore operations
     CoroutineScope(Dispatchers.IO).launch {
         try {
             // Generate a unique patient ID
-            val patientId = generateUniquePatientId(db)
+            val id = generateUniquePatientId(db)
 
             // Create a map of patient data
             val patientData = hashMapOf(
@@ -381,11 +383,12 @@ fun savePatientData(
                 "dateOfBirth" to dateOfBirth?.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
                 "visitingDate" to visitingDate.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
                 "imageUri" to imageUri,
-                "patientId" to patientId // Add the patient ID to the data
+                "id" to id, // Add the patient ID to the data
+                "age" to age
             )
 
             // Store the patient data using the generated patient ID as the document ID
-            db.collection("patients").document(patientId).set(patientData).await()
+            db.collection("patients").document(id).set(patientData).await()
 
             // Show a toast message on success
             withContext(Dispatchers.Main) {
