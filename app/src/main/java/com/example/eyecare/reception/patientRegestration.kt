@@ -32,13 +32,18 @@ import androidx.navigation.NavController
 import com.example.eyecare.Extra.AuthViewModel
 import com.example.eyecare.topBar.topBarId
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 import java.time.LocalDate
 import java.time.Period
 import java.time.format.DateTimeFormatter
 import java.util.*
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PatientDetailsScreen(navController: NavController, patientId: String?) {
     var name by remember { mutableStateOf(TextFieldValue("")) }
@@ -51,25 +56,41 @@ fun PatientDetailsScreen(navController: NavController, patientId: String?) {
     var showDatePicker by remember { mutableStateOf(false) }
     var showVisitingDatePicker by remember { mutableStateOf(false) }
 
-    val db = FirebaseFirestore.getInstance()
-    val context = LocalContext.current
-
     var receptionistName by remember { mutableStateOf("Loading...") }
     var receptionistPosition by remember { mutableStateOf("Loading...") }
 
+    val db = FirebaseFirestore.getInstance()
+    val context = LocalContext.current
+
     val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
 
+    LaunchedEffect(patientId) {
+        val patientDocRef = db.collection("patients").document(patientId ?: "")
+
+        patientDocRef.get().addOnSuccessListener { document ->
+            if (document.exists()) {
+                name = TextFieldValue(document.getString("name") ?: "")
+                address = TextFieldValue(document.getString("address") ?: "")
+                phone = TextFieldValue(document.getString("phone") ?: "")
+                selectedGender = document.getString("gender") ?: "Male"
+            } else {
+                Toast.makeText(context, "Patient not found", Toast.LENGTH_LONG).show()
+            }
+        }.addOnFailureListener {
+            Toast.makeText(context, "Failed to fetch patient details", Toast.LENGTH_LONG).show()
+        }
+    }
+
+
+
+    // Fetch receptionist details
     LaunchedEffect(currentUserId) {
         currentUserId?.let { userId ->
             val userDocRef = db.collection("users").document(userId)
-
             userDocRef.get().addOnSuccessListener { document ->
-                if (document != null && document.exists()) {
+                if (document.exists()) {
                     receptionistName = document.getString("name") ?: "Receptionist"
                     receptionistPosition = document.getString("position") ?: "Receptionist"
-                } else {
-                    receptionistName = "Receptionist"
-                    receptionistPosition = "Receptionist"
                 }
             }.addOnFailureListener {
                 receptionistName = "Receptionist"
@@ -78,6 +99,7 @@ fun PatientDetailsScreen(navController: NavController, patientId: String?) {
         }
     }
 
+    // Show date picker dialogs
     if (showDatePicker) {
         DatePickerDialog(
             context,
@@ -104,35 +126,12 @@ fun PatientDetailsScreen(navController: NavController, patientId: String?) {
         ).show()
     }
 
-    // Fetch patient details if patientId is provided
-    LaunchedEffect(patientId) {
-        patientId?.let {
-            db.collection("patients").document(it).get().addOnSuccessListener { document ->
-                if (document.exists()) {
-                    name = TextFieldValue(document.getString("name") ?: "")
-                    address = TextFieldValue(document.getString("address") ?: "")
-                    phone = TextFieldValue(document.getString("phone") ?: "")
-                    selectedGender = document.getString("gender") ?: "Male"
-                    imageUri = document.getString("imageUri")
-                    dateOfBirth = document.getString("dateOfBirth")?.let { dateStr ->
-                        LocalDate.parse(dateStr, DateTimeFormatter.ofPattern("dd/MM/yyyy"))
-                    }
-                    todayDate = document.getString("visitingDate")?.let { dateStr ->
-                        LocalDate.parse(dateStr, DateTimeFormatter.ofPattern("dd/MM/yyyy"))
-                    } ?: LocalDate.now()
-                }
-            }.addOnFailureListener {
-                Toast.makeText(context, "Failed to fetch details", Toast.LENGTH_SHORT).show()
-            }
-        }
-    }
-
     Scaffold(
         topBar = {
             topBarId(
                 name = receptionistName,
                 position = receptionistPosition,
-                screenName = "Patient Details",
+                screenName = "Patient Registration",
                 authViewModel = AuthViewModel(),
                 navController = navController
             )
@@ -159,6 +158,7 @@ fun PatientDetailsScreen(navController: NavController, patientId: String?) {
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
+                    // Visiting date selection
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Button(onClick = { showVisitingDatePicker = true }) {
                             Text(text = "Select Visiting Date")
@@ -174,6 +174,7 @@ fun PatientDetailsScreen(navController: NavController, patientId: String?) {
 
                     Spacer(modifier = Modifier.height(20.dp))
 
+                    // Name input field
                     OutlinedTextField(
                         value = name,
                         onValueChange = { name = it },
@@ -185,6 +186,7 @@ fun PatientDetailsScreen(navController: NavController, patientId: String?) {
 
                     Spacer(modifier = Modifier.height(12.dp))
 
+                    // Date of birth selection
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Button(onClick = { showDatePicker = true }) {
                             Text(text = "Select Date of Birth")
@@ -200,6 +202,7 @@ fun PatientDetailsScreen(navController: NavController, patientId: String?) {
 
                     Spacer(modifier = Modifier.height(20.dp))
 
+                    // Calculate and display age
                     val age = dateOfBirth?.let { calculateAge(it, todayDate) } ?: "N/A"
 
                     OutlinedTextField(
@@ -215,6 +218,7 @@ fun PatientDetailsScreen(navController: NavController, patientId: String?) {
 
                     Spacer(modifier = Modifier.height(12.dp))
 
+                    // Address input field
                     OutlinedTextField(
                         value = address,
                         onValueChange = { address = it },
@@ -226,6 +230,7 @@ fun PatientDetailsScreen(navController: NavController, patientId: String?) {
 
                     Spacer(modifier = Modifier.height(12.dp))
 
+                    // Phone number input field
                     OutlinedTextField(
                         value = phone,
                         onValueChange = { phone = it },
@@ -238,6 +243,7 @@ fun PatientDetailsScreen(navController: NavController, patientId: String?) {
 
                     Spacer(modifier = Modifier.height(12.dp))
 
+                    // Gender selection
                     Text(
                         text = "Sex",
                         style = TextStyle(
@@ -252,81 +258,76 @@ fun PatientDetailsScreen(navController: NavController, patientId: String?) {
 
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(3.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        GenderRadioButton(selectedGender = selectedGender, onGenderSelected = { selectedGender = it })
+                        RadioButton(
+                            selected = selectedGender == "Male",
+                            onClick = { selectedGender = "Male" }
+                        )
+                        Text(text = "Male")
+
+                        Spacer(modifier = Modifier.width(16.dp))
+
+                        RadioButton(
+                            selected = selectedGender == "Female",
+                            onClick = { selectedGender = "Female" }
+                        )
+                        Text(text = "Female")
+
+                        Spacer(modifier = Modifier.width(16.dp))
+
+                        RadioButton(
+                            selected = selectedGender == "Other",
+                            onClick = { selectedGender = "Other" }
+                        )
+                        Text(text = "Other")
                     }
-
-                    Spacer(modifier = Modifier.height(20.dp))
-
-                    Text(
-                        text = "Photo",
-                        style = TextStyle(
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.SemiBold
-                        ),
-                        modifier = Modifier.fillMaxWidth(),
-                        textAlign = TextAlign.Center
-                    )
 
                     Spacer(modifier = Modifier.height(12.dp))
 
-                    Box(
-                        modifier = Modifier
-                            .size(120.dp)
-                            .clip(CircleShape)
-                            .background(Color.Gray.copy(alpha = 0.2f))
-                            .clickable { /* Add photo upload logic here */ },
-                        contentAlignment = Alignment.Center
-                    ) {
+                    // Display profile image if available
+                    if (imageUri != null) {
                         Icon(
                             imageVector = Icons.Default.AccountCircle,
-                            contentDescription = "Add Photo",
-                            tint = Color.Gray,
-                            modifier = Modifier.size(50.dp)
+                            contentDescription = "Profile",
+                            tint = Color.DarkGray,
+                            modifier = Modifier
+                                .size(120.dp)
+                                .clip(CircleShape)
+                                .background(Color.White)
+                        )
+                    } else {
+                        Text(
+                            text = "No profile image selected",
+                            modifier = Modifier.padding(8.dp)
                         )
                     }
 
-                    Spacer(modifier = Modifier.height(24.dp))
+                    Spacer(modifier = Modifier.height(12.dp))
 
+                    // Save patient data button
                     ElevatedButton(
                         onClick = {
-                            val patientRandomId = (1000000..9999999).random()
-                            val updatedPatientDetails = hashMapOf(
-                                "name" to name.text,
-                                "age" to age,
-                                "address" to address.text,
-                                "phone" to phone.text,
-                                "gender" to selectedGender,
-                                "imageUri" to imageUri,
-                                "dateOfBirth" to dateOfBirth?.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
-                                "visitingDate" to todayDate?.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
-                                "patientRandomId" to patientRandomId
+                            // Save patient data when button is clicked
+                            savePatientData(
+                                name = name.text,
+                                address = address.text,
+                                phone = phone.text,
+                                gender = selectedGender,
+                                imageUri = imageUri,
+                                dateOfBirth = dateOfBirth,
+                                visitingDate = todayDate,
+                                db = db,
+                                navController = navController,
+                                age = age
                             )
-
-                            patientId?.let { id ->
-                                db.collection("patients")
-                                    .document(id)
-                                    .set(updatedPatientDetails)
-                                    .addOnSuccessListener {
-                                        Log.d("Firestore", "Patient details successfully updated with ID: $id")
-                                        Toast.makeText(context, "Details updated", Toast.LENGTH_SHORT).show()
-                                    }
-                                    .addOnFailureListener { e ->
-                                        Log.w("Firestore", "Error updating document", e)
-                                        Toast.makeText(context, "Update unsuccessful, try again!", Toast.LENGTH_SHORT).show()
-                                    }
-                            }
-                            navController.navigate("receptionistScreen")
+                            //navController.navigate(("receptionistScreen"))
+                            navController.popBackStack()
                         },
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF39A6EE)),
-                        modifier = Modifier.fillMaxWidth()  // Make button fill the width
+                        modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text(
-                            text = "Save Details",
-                            style = TextStyle(fontSize = 16.sp)
-                        )
+                        Text("Save Patient Details")
                     }
                 }
             }
@@ -334,34 +335,97 @@ fun PatientDetailsScreen(navController: NavController, patientId: String?) {
     }
 }
 
-@Composable
-fun GenderRadioButton(selectedGender: String, onGenderSelected: (String) -> Unit) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        RadioButton(
-            selected = selectedGender == "Male",
-            onClick = { onGenderSelected("Male") }
-        )
-        Text("Male", modifier = Modifier.padding(start = 8.dp))
+// Function to calculate age from birth date
+fun calculateAge(dateOfBirth: LocalDate, visitingDate: LocalDate): String {
+    val period = Period.between(dateOfBirth, visitingDate)
+    return period.years.toString()
+}
 
-        Spacer(modifier = Modifier.width(16.dp))
+// Suspend function to generate a unique patient ID
+suspend fun generateUniquePatientId(db: FirebaseFirestore): String {
+    var uniqueId: String
+    do {
+        uniqueId = (1..8)
+            .map { "0123456789".random() }
+            .joinToString("")
+        val documentSnapshot = db.collection("patients").document(uniqueId).get().await()
+    } while (documentSnapshot.exists()) // Repeat if the ID already exists
+    return uniqueId
+}
 
-        RadioButton(
-            selected = selectedGender == "Female",
-            onClick = { onGenderSelected("Female") }
-        )
-        Text("Female", modifier = Modifier.padding(start = 8.dp))
+// Function to save patient data to Firestore with generated patient ID
+fun savePatientData(
+    name: String,
+    address: String,
+    phone: String,
+    gender: String,
+    imageUri: String?,
+    dateOfBirth: LocalDate?,
+    visitingDate: LocalDate,
+    db: FirebaseFirestore,
+    navController: NavController,
+    age: String
+) {
+    // Use coroutine to handle Firestore operations
+    CoroutineScope(Dispatchers.IO).launch {
+        try {
+            // Generate a unique patient ID
+            val patientId = generateUniquePatientId(db)
 
-        Spacer(modifier = Modifier.width(16.dp))
+            // Create a map of patient data
+            val patientData = hashMapOf(
+                "name" to name,
+                "address" to address,
+                "phone" to phone,
+                "gender" to gender,
+                "dateOfBirth" to dateOfBirth?.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+                "visitingDate" to visitingDate.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+                "imageUri" to imageUri,
+                "patientId" to patientId,
+                "age" to age// Add the patient ID to the data
+            )
 
-        RadioButton(
-            selected = selectedGender == "Other",
-            onClick = { onGenderSelected("Other") }
-        )
-        Text("Other", modifier = Modifier.padding(start = 8.dp))
+            // Store the patient data using the generated patient ID as the document ID
+            db.collection("patients").document(patientId).set(patientData).await()
+
+            // Show a toast message on success
+            withContext(Dispatchers.Main) {
+                Toast.makeText(navController.context, "Patient saved successfully!", Toast.LENGTH_SHORT).show()
+            }
+
+            // Navigate back or show success feedback
+
+        } catch (e: Exception) {
+            Log.e("PatientDetailsScreen", "Error saving patient data", e)
+            withContext(Dispatchers.Main) {
+                Toast.makeText(navController.context, "Failed to save patient data.", Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 }
 
-fun calculateAge(dateOfBirth: LocalDate, todayDate: LocalDate): String {
-    val period = Period.between(dateOfBirth, todayDate)
-    return period.years.toString()
+
+/*
+suspend fun generateUniquePatientId(db: FirebaseFirestore): String {
+    val existingIds = mutableListOf<String>()
+    val patientsSnapshot = db.collection("patients").get().await()
+
+    for (document in patientsSnapshot.documents) {
+        existingIds.add(document.id)
+    }
+
+    var newPatientId: String
+    do {
+        newPatientId = generateRandomAlphanumericId(8) // Change the length if needed
+    } while (existingIds.contains(newPatientId))
+
+    return newPatientId
 }
+
+fun generateRandomAlphanumericId(length: Int): String {
+    val chars = "0123456789"
+    return (1..7)
+        .map { chars.random() }
+        .joinToString("")
+}
+*/

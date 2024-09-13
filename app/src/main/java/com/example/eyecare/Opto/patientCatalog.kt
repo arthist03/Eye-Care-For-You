@@ -1,48 +1,40 @@
 package com.example.eyecare.Opto
 
 import android.util.Log
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import coil.compose.rememberAsyncImagePainter
 import com.example.eyecare.Extra.AuthViewModel
 import com.example.eyecare.Extra.LoadingAnimation
 import com.example.eyecare.topBar.topBarId
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.*
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 
 @Composable
 fun PatientCatalogPage(navController: NavController) {
     val db = FirebaseFirestore.getInstance()
-
+    val auth = FirebaseAuth.getInstance()
     var patients by remember { mutableStateOf(listOf<Patient>()) }
-    var filteredPatients by remember { mutableStateOf(listOf<Patient>()) } // List of filtered patients
-    var searchQuery by remember { mutableStateOf("") } // Holds the search query
+    var filteredPatients by remember { mutableStateOf(listOf<Patient>()) }
+    var searchQuery by remember { mutableStateOf("") }
     var optoName by remember { mutableStateOf("Loading...") }
     var optoPosition by remember { mutableStateOf("Loading...") }
     var isLoading by remember { mutableStateOf(true) }
     var errorMessage by remember { mutableStateOf("") }
 
-    val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
+    val currentUserId = auth.currentUser?.uid
 
     // Fetch optometrist's details from Firestore
     LaunchedEffect(currentUserId) {
@@ -78,11 +70,11 @@ fun PatientCatalogPage(navController: NavController) {
                 }
 
                 val fetchedPatients = snapshot?.documents?.mapNotNull { document ->
-                    document.toObject(Patient::class.java)?.copy(id = document.id) // Include document ID
+                    document.toObject(Patient::class.java)?.copy(id = document.id)
                 } ?: emptyList()
 
                 patients = fetchedPatients
-                filteredPatients = fetchedPatients // Initially show all patients
+                filteredPatients = fetchedPatients
                 isLoading = false
             }
 
@@ -91,14 +83,13 @@ fun PatientCatalogPage(navController: NavController) {
         }
     }
 
-    // Update the filtered patients whenever search query changes
+    // Update filtered patients based on search query
     LaunchedEffect(searchQuery) {
         filteredPatients = if (searchQuery.isEmpty()) {
             patients
         } else {
-            // Filter patients based on progressive letter matching
             patients.filter { patient ->
-                patient.name.startsWith(searchQuery, ignoreCase = true)
+                patient.name.contains(searchQuery, ignoreCase = true)
             }
         }
     }
@@ -128,11 +119,12 @@ fun PatientCatalogPage(navController: NavController) {
             label = { Text("Search patients") },
             placeholder = { Text("Enter name") },
             singleLine = true,
-            shape = RoundedCornerShape(25.dp), // Make the corners rounded
+            shape = RoundedCornerShape(25.dp),
         )
 
         // Show loading, error message, or the list of filtered patients
         if (isLoading) {
+            // Assuming you have a LoadingAnimation composable
             LoadingAnimation(
                 circleSize = 25.dp,
                 spaceBetween = 10.dp,
@@ -152,7 +144,6 @@ fun PatientCatalogPage(navController: NavController) {
             ) {
                 items(filteredPatients) { patient ->
                     PatientCard(patient = patient) {
-                        // Navigate to patient details page with patient ID
                         navController.navigate("withGlassOpto/${patient.id}")
                     }
                 }
@@ -161,27 +152,13 @@ fun PatientCatalogPage(navController: NavController) {
     }
 }
 
-
-
-
-// Patient data model
-data class Patient(
-    val address: String = "",
-    val age: String = "",
-    val gender: String = "",
-    val id: String = "",
-    val imageUri: String? = null,
-    val name: String = "",
-    val phone: String = ""
-)
-
 @Composable
 fun PatientCard(patient: Patient, onClick: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp)
-            .clickable { onClick() },  // Trigger onClick when tapped
+            .clickable { onClick() },
         elevation = CardDefaults.cardElevation(4.dp),
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -190,6 +167,58 @@ fun PatientCard(patient: Patient, onClick: () -> Unit) {
             Text(text = "Gender: ${patient.gender}")
             Text(text = "Address: ${patient.address}")
             Text(text = "Phone: ${patient.phone}")
+
+            // Display status of the patient
+            if (patient.currentlyUnderObservation) {
+                Text(
+                    text = "Under Observation",
+                    color = Color.Red,
+                    fontSize = 14.sp
+                )
+            } else {
+                Text(
+                    text = "Available",
+                    color = Color.Green,
+                    fontSize = 14.sp
+                )
+            }
         }
     }
 }
+
+// Functions to update patient status
+fun startObservation(patientId: String) {
+    val db = FirebaseFirestore.getInstance()
+    db.collection("patients").document(patientId).update(
+        "status", "Under Observation",
+        "currentlyUnderObservation", true
+    ).addOnSuccessListener {
+        // Status updated successfully
+    }.addOnFailureListener { e ->
+        // Handle the error
+    }
+}
+
+fun endObservation(patientId: String) {
+    val db = FirebaseFirestore.getInstance()
+    db.collection("patients").document(patientId).update(
+        "status", "Available",
+        "currentlyUnderObservation", false
+    ).addOnSuccessListener {
+        // Status updated successfully
+    }.addOnFailureListener { e ->
+        // Handle the error
+    }
+}
+
+
+data class Patient(
+    val id: String = "",
+    val name: String = "",
+    val age: String = "",
+    val gender: String = "",
+    val address: String = "",
+    val phone: String = "",
+    val status: String = "Available", // Default status
+    val currentlyUnderObservation: Boolean = false // Indicates if the patient is being handled
+)
