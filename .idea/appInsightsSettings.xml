@@ -9,10 +9,10 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="PLACEHOLDER" />
-                  <option name="mobileSdkAppId" value="" />
-                  <option name="projectId" value="" />
-                  <option name="projectNumber" value="" />
+                  <option name="appId" value="com.example.eyecare" />
+                  <option name="mobileSdkAppId" value="1:100122479471:android:611f611e5c5d179963369a" />
+                  <option name="projectId" value="eyecare-for-you" />
+                  <option name="projectNumber" value="100122479471" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />

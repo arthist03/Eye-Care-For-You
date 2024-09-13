@@ -25,10 +25,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import com.example.eyecare.Extra.AuthViewModel
 import com.example.eyecare.R
 
 @Composable
-fun homeScreen() {
+fun homeScreen(navController: NavController, authViewModel: AuthViewModel) {
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -48,7 +50,7 @@ fun homeScreen() {
 
             drawCircle(
                 brush = Brush.verticalGradient(
-                    colors = listOf(Color(0xFF39A6EE), Color(0xFF39A6EE))
+                    colors = listOf(Color(0xFFB0E0E6), Color(0xFF2CE8FF))
                 ),
                 radius = height / 1.8f,
                 center = Offset(x = width / 2, y = height + 50)
@@ -56,7 +58,7 @@ fun homeScreen() {
 
             drawCircle(
                 brush = Brush.verticalGradient(
-                    colors = listOf(Color(0xFF1242E6), Color(0xFF39A6EE))
+                    colors = listOf(Color(0xFFB0E0E6), Color(0xFF84F1FF))
                 ),
                 radius = height / 2.7f,
                 center = Offset(x = width / 2, y = height - 50)
@@ -64,7 +66,7 @@ fun homeScreen() {
 
             drawCircle(
                 brush = Brush.verticalGradient(
-                    colors = listOf(Color(0xFF000825), Color(0xFF001F8B))
+                    colors = listOf(Color(0xFFB0E0E6), Color(0xFFB0E0E6))
                 ),
                 radius = height / 3.7f,
                 center = Offset(x = width / 2, y = height - 10)
@@ -87,11 +89,11 @@ fun homeScreen() {
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            Text(text = "Eye - Care For You", fontSize = 40.sp, color = Color(0xFF6C63FF))
+            Text(text = "Eye - Care For You", fontSize = 34.sp, color = Color(0xFF005780))
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            Text(text = "*Quote*")
+            Text(text = "Precision Meets Compassion")
         }
 
         // Buttons at the bottom, aligned on top of the circles
@@ -102,8 +104,8 @@ fun homeScreen() {
                 .padding(bottom = 80.dp), // Adjust padding to position on circles
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            ElevatedButton(onClick = { /*TODO*/ },
-                colors = ButtonDefaults.elevatedButtonColors(Color(0xFF1F86FF)),
+            ElevatedButton(onClick = { navController.navigate("login") },
+                colors = ButtonDefaults.elevatedButtonColors(Color(0xFF3C8A94)),
                 modifier = Modifier.height(50.dp).width(130.dp),
                 elevation = ButtonDefaults.buttonElevation(
                     defaultElevation = 20.dp,
@@ -111,20 +113,15 @@ fun homeScreen() {
             ) {
                 Text(text = "Log in", color = Color.White, fontWeight = FontWeight.Bold)
             }
-            ElevatedButton(onClick = { /*TODO*/ },
-                colors = ButtonDefaults.elevatedButtonColors(Color(0xFF6C80E7)),
+            ElevatedButton(onClick = {navController.navigate("signup")},
+                colors = ButtonDefaults.elevatedButtonColors(Color(0xFF9CBFC4)),
                 modifier = Modifier.height(50.dp).width(130.dp),elevation = ButtonDefaults.buttonElevation(
                     defaultElevation = 20.dp,
                     pressedElevation = 15.dp)
                 ) {
-                Text(text = "Sign Up", color = Color.White, fontWeight = FontWeight.Bold)
+                Text(text = "Sign Up", color = Color.Black, fontWeight = FontWeight.Bold)
             }
         }
     }
 }
 
-@Preview
-@Composable
-private fun homePrev() {
-    homeScreen()
-}
