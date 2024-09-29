@@ -60,6 +60,7 @@ class AuthViewModel : ViewModel() {
                         "DOCTOR" -> _authState.value = AuthState.RedirectToDoctor
                         "OPTOMETRIST" -> _authState.value = AuthState.RedirectToOptometrist
                         "RECEPTIONIST" -> _authState.value = AuthState.RedirectToReceptionist
+                        "ADMIN" -> _authState.value = AuthState.RedirectToAdmin
                         else -> _authState.value = AuthState.Error("Invalid role assigned")
                     }
                 } else {
@@ -71,8 +72,8 @@ class AuthViewModel : ViewModel() {
             }
     }
 
-    fun signup(email: String, password: String, confirmPassword: String, name: String, phone: String, selectedRole: String) {
-        if (email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty() || name.isEmpty() || phone.isEmpty() || selectedRole.isEmpty()) {
+    fun signup(email: String, password: String, confirmPassword: String, name: String, phone: String, selectedRole: String, fullName: String) {
+        if (email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty() || name.isEmpty() || phone.isEmpty() || selectedRole.isEmpty() || fullName.isEmpty()) {
             _authState.value = AuthState.Error("Enter details in all fields")
             return
         }
@@ -82,21 +83,23 @@ class AuthViewModel : ViewModel() {
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     val userId = auth.currentUser?.uid ?: return@addOnCompleteListener
-                    saveUserDetails(userId, name, email, password, phone, selectedRole)
+                    saveUserDetails(userId, name, email, password, phone, selectedRole, fullName)
                 } else {
                     _authState.value = AuthState.Error(task.exception?.message ?: "Signup failed!")
                 }
             }
     }
 
-    private fun saveUserDetails(userId: String, name: String, email: String, password: String, phone: String, role: String) {
+    private fun saveUserDetails(userId: String, name: String, email: String, password: String, phone: String, role: String, fullName:String) {
         val user = hashMapOf(
+            "id" to userId,
             "name" to name,
             "email" to email,
             "password" to password,  // Consider encrypting passwords before storing.
             "phone" to phone,
-            "role" to role.uppercase()  // Convert role to uppercase.
-        )
+            "role" to role.uppercase(),  // Convert role to uppercase.
+            "fullName" to fullName
+            )
 
         firestore.collection("users").document(userId).set(user)
             .addOnSuccessListener {
@@ -107,6 +110,7 @@ class AuthViewModel : ViewModel() {
                     "DOCTOR" -> _authState.value = AuthState.RedirectToDoctor
                     "OPTOMETRIST" -> _authState.value = AuthState.RedirectToOptometrist
                     "RECEPTIONIST" -> _authState.value = AuthState.RedirectToReceptionist
+                    "ADMIN" -> _authState.value = AuthState.RedirectToAdmin
                     else -> _authState.value = AuthState.Error("Unknown role")
                 }
             }
@@ -130,5 +134,7 @@ sealed class AuthState {
     object RedirectToDoctor : AuthState()
     object RedirectToOptometrist : AuthState()
     object RedirectToReceptionist : AuthState()
+    object RedirectToAdmin : AuthState()
     data class Error(val message: String) : AuthState()
 }
+

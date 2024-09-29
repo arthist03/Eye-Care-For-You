@@ -49,7 +49,7 @@ fun screenName(screenName: String) {
             ) {
                 Text(
                     text = screenName,
-                    fontSize = 25.sp,
+                    fontSize = 20.sp,
                     fontWeight = FontWeight.W400,
                     color = Color.Black
                 )

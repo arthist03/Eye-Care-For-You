@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
+import coil.compose.rememberImagePainter
 import com.example.eyecare.Extra.AuthViewModel
 import com.example.eyecare.Extra.LoadingAnimation
 import com.example.eyecare.topBar.topBarId
@@ -50,7 +51,7 @@ fun PatientCatalogPage(navController: NavController) {
             val userDocRef = db.collection("users").document(userId)
             userDocRef.get().addOnSuccessListener { document ->
                 if (document != null && document.exists()) {
-                    optoName = document.getString("name") ?: "Optometrist"
+                    optoName = document.getString("fullName") ?: "Optometrist"
                     optoPosition = document.getString("role") ?: "Optometrist"
                 } else {
                     optoName = "Optometrist"
@@ -129,6 +130,15 @@ fun PatientCatalogPage(navController: NavController) {
             placeholder = { Text("Enter name") },
             singleLine = true,
             shape = RoundedCornerShape(25.dp), // Make the corners rounded
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedTextColor = Color.Black,
+                focusedLabelColor = Color.Black,
+                focusedPlaceholderColor = Color.Black,
+                focusedContainerColor = Color.White,
+                unfocusedContainerColor = Color.White,
+                focusedBorderColor = Color.White,
+                unfocusedBorderColor = Color.White
+            )
         )
 
         // Show loading, error message, or the list of filtered patients
@@ -186,12 +196,23 @@ fun PatientCard(patient: Patient, onClick: () -> Unit) {
             .clickable { onClick() },  // Trigger onClick when tapped
         elevation = CardDefaults.cardElevation(4.dp),
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(text = "Name: ${patient.name}")
-            Text(text = "Age: ${patient.age} years")
-            Text(text = "Gender: ${patient.gender}")
-            Text(text = "Address: ${patient.id}")
-            Text(text = "Phone: ${patient.phone}")
+        Row (modifier = Modifier.padding(10.dp)){
+            Image(
+                painter = rememberImagePainter(patient.imageUri),
+                contentDescription = "Patient Image",
+                modifier = Modifier
+                    .size(64.dp) // Set the desired size
+                    .padding(end = 16.dp), // Add padding to the right
+                contentScale = ContentScale.Crop // Scale the image as needed
+            )
+
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text(text = "Name: ${patient.name}")
+                Text(text = "Age: ${patient.age} years")
+                Text(text = "Gender: ${patient.gender}")
+                Text(text = "Address: ${patient.id}")
+                Text(text = "Phone: ${patient.phone}")
+            }
         }
     }
 }

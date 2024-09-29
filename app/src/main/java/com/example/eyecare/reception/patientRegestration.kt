@@ -89,7 +89,7 @@ fun PatientDetailsScreen(navController: NavController, patientId: String?) {
             val userDocRef = db.collection("users").document(userId)
             userDocRef.get().addOnSuccessListener { document ->
                 if (document.exists()) {
-                    receptionistName = document.getString("name") ?: "Receptionist"
+                    receptionistName = document.getString("fullName") ?: "Receptionist"
                     receptionistPosition = document.getString("position") ?: "Receptionist"
                 }
             }.addOnFailureListener {
@@ -258,7 +258,7 @@ fun PatientDetailsScreen(navController: NavController, patientId: String?) {
 
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(1.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         RadioButton(
@@ -267,7 +267,6 @@ fun PatientDetailsScreen(navController: NavController, patientId: String?) {
                         )
                         Text(text = "Male")
 
-                        Spacer(modifier = Modifier.width(16.dp))
 
                         RadioButton(
                             selected = selectedGender == "Female",
@@ -275,7 +274,6 @@ fun PatientDetailsScreen(navController: NavController, patientId: String?) {
                         )
                         Text(text = "Female")
 
-                        Spacer(modifier = Modifier.width(16.dp))
 
                         RadioButton(
                             selected = selectedGender == "Other",

@@ -18,6 +18,8 @@ import com.example.eyecare.reception.PageReception
 import com.example.eyecare.WelcomeHome.LoginScreen
 import com.example.eyecare.WelcomeHome.homeScreen
 import com.example.eyecare.WelcomeHome.SignUpScreen
+import com.example.eyecare.adminPage.adminPage
+import com.example.eyecare.adminPage.editUser
 import com.example.eyecare.reception.PatientDetailsScreen
 
 import com.example.eyecare.topBar.screenName
@@ -28,14 +30,21 @@ fun AppNavHost(authViewModel: AuthViewModel) {
     NavHost(navController = navController, startDestination = "home") {
         composable("home") { homeScreen(navController, authViewModel) }
         composable("login") { LoginScreen(navController,authViewModel) }
-        composable("signup") { SignUpScreen(navController, authViewModel) }
         composable("doctorScreen") { pageDoctors(navController, authViewModel) }
         composable("hodScreen") { pageHOD(navController,authViewModel) }
+        composable("adminPage") { adminPage(navController) }
+        composable("editUserPage") { editUser(navController, authViewModel) }
         composable("optometristScreen") { pageOpto(navController, authViewModel) }
         composable("receptionistScreen") { PageReception(navController, authViewModel) }
         composable("OptoPatients"){ PatientCatalogPage(navController)}
         composable("hodPatients"){ hodcatalog(navController) }
         composable("doctorpatients"){ doctorcatalog(navController) }
+
+
+        composable("signup/{userId}") { backStackEntry ->
+            val userId = backStackEntry.arguments?.getString("userId")
+            SignUpScreen(navController = navController,  authViewModel, userId = userId)
+        }
 
         composable("patientDetails/{patientId}") { backStackEntry ->
             val patientId = backStackEntry.arguments?.getString("patientId")

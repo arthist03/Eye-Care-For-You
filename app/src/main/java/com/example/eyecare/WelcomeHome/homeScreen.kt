@@ -106,20 +106,12 @@ fun homeScreen(navController: NavController, authViewModel: AuthViewModel) {
         ) {
             ElevatedButton(onClick = { navController.navigate("login") },
                 colors = ButtonDefaults.elevatedButtonColors(Color(0xFF3C8A94)),
-                modifier = Modifier.height(50.dp).width(130.dp),
+                modifier = Modifier.height(50.dp).width(300.dp),
                 elevation = ButtonDefaults.buttonElevation(
                     defaultElevation = 20.dp,
                     pressedElevation = 15.dp)
             ) {
-                Text(text = "Log in", color = Color.White, fontWeight = FontWeight.Bold)
-            }
-            ElevatedButton(onClick = {navController.navigate("signup")},
-                colors = ButtonDefaults.elevatedButtonColors(Color(0xFF9CBFC4)),
-                modifier = Modifier.height(50.dp).width(130.dp),elevation = ButtonDefaults.buttonElevation(
-                    defaultElevation = 20.dp,
-                    pressedElevation = 15.dp)
-                ) {
-                Text(text = "Sign Up", color = Color.Black, fontWeight = FontWeight.Bold)
+                Text(text = "Log in", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 20.sp)
             }
         }
     }

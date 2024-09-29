@@ -41,7 +41,7 @@ fun PageReception(navController: NavController, authViewModel: AuthViewModel) {
             val userDocRef = db.collection("users").document(userId)
             userDocRef.get().addOnSuccessListener { document ->
                 if (document.exists()) {
-                    receptionistName = document.getString("name") ?: "Receptionist"
+                    receptionistName = document.getString("fullName") ?: "Receptionist"
                     receptionistPosition = document.getString("position") ?: "Receptionist"
                 }
             }.addOnFailureListener {
@@ -72,14 +72,14 @@ fun PageReception(navController: NavController, authViewModel: AuthViewModel) {
 
                             // Perform additional search on ID
                             db.collection("patients")
-                                .whereGreaterThanOrEqualTo("patientId", query)
-                                .whereLessThanOrEqualTo("patientId", query + "\uf8ff")
+                                .whereGreaterThanOrEqualTo("id", query)
+                                .whereLessThanOrEqualTo("id", query + "\uf8ff")
                                 .get()
                                 .addOnSuccessListener { idDocuments ->
                                     val idResults = idDocuments.map { it.data }
 
                                     // Combine all search results and remove duplicates by patient ID
-                                    searchResults = (nameResults + phoneResults + idResults).distinctBy { it["patientId"] }
+                                    searchResults = (nameResults + phoneResults + idResults).distinctBy { it["id"] }
                                 }
                                 .addOnFailureListener {
                                     Toast.makeText(context, "Search by ID failed", Toast.LENGTH_SHORT).show()
@@ -167,7 +167,7 @@ fun PageReception(navController: NavController, authViewModel: AuthViewModel) {
 
                     LazyColumn {
                         items(searchResults) { result ->
-                            val patientId = result["patientId"] as? String ?: ""
+                            val id = result["id"] as? String ?: ""
                             val patientName = result["name"] as? String ?: ""
 
                             Card(
@@ -175,8 +175,8 @@ fun PageReception(navController: NavController, authViewModel: AuthViewModel) {
                                     .fillMaxWidth()
                                     .padding(8.dp)
                                     .clickable {
-                                        if (patientId.isNotEmpty()) {
-                                            navController.navigate("patientDetails/$patientId")
+                                        if (id.isNotEmpty()) {
+                                            navController.navigate("patientDetails/$id")
                                         } else {
                                             Toast.makeText(context, "Invalid Patient ID", Toast.LENGTH_SHORT).show()
                                         }
@@ -189,7 +189,7 @@ fun PageReception(navController: NavController, authViewModel: AuthViewModel) {
                                 ) {
                                     Text(text = "Name: $patientName", fontSize = 16.sp)
                                     Text(text = "Phone: ${result["phone"]}", fontSize = 16.sp)
-                                    Text(text = "ID: $patientId", fontSize = 16.sp)
+                                    Text(text = "ID: $id", fontSize = 16.sp)
                                 }
                             }
                         }

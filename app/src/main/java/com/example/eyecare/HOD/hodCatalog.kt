@@ -51,7 +51,7 @@ fun hodcatalog(navController: NavController) {
             val userDocRef = db.collection("users").document(userId)
             userDocRef.get().addOnSuccessListener { document ->
                 if (document != null && document.exists()) {
-                    optoName = document.getString("name") ?: "HOD"
+                    optoName = document.getString("fullName") ?: "HOD"
                     optoPosition = document.getString("role") ?: "HOD"
                 } else {
                     optoName = "HOD"
@@ -130,6 +130,15 @@ fun hodcatalog(navController: NavController) {
             placeholder = { Text("Enter name") },
             singleLine = true,
             shape = RoundedCornerShape(25.dp), // Make the corners rounded
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedTextColor = Color.Black,
+                focusedLabelColor = Color.Black,
+                focusedPlaceholderColor = Color.Black,
+                focusedContainerColor = Color.White,
+                unfocusedContainerColor = Color.White,
+                focusedBorderColor = Color.White,
+                unfocusedBorderColor = Color.White
+            )
         )
 
         // Show loading, error message, or the list of filtered patients

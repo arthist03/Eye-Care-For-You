@@ -51,7 +51,7 @@ fun doctorcatalog(navController: NavController) {
             val userDocRef = db.collection("users").document(userId)
             userDocRef.get().addOnSuccessListener { document ->
                 if (document != null && document.exists()) {
-                    optoName = document.getString("name") ?: "Doctor"
+                    optoName = document.getString("fullName") ?: "Doctor"
                     optoPosition = document.getString("role") ?: "Doctor"
                 } else {
                     optoName = "Doctor"
@@ -129,7 +129,16 @@ fun doctorcatalog(navController: NavController) {
             label = { Text("Search patients") },
             placeholder = { Text("Enter name") },
             singleLine = true,
-            shape = RoundedCornerShape(25.dp), // Make the corners rounded
+            shape = RoundedCornerShape(25.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedTextColor = Color.Black,
+                focusedLabelColor = Color.Black,
+                focusedPlaceholderColor = Color.Black,
+                focusedContainerColor = Color.White,
+                unfocusedContainerColor = Color.White,
+                focusedBorderColor = Color.White,
+                unfocusedBorderColor = Color.White
+            )// Make the corners rounded
         )
 
         // Show loading, error message, or the list of filtered patients

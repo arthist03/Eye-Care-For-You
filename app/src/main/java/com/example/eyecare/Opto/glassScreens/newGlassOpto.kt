@@ -51,7 +51,9 @@ fun newGlassOpto(navController: NavController, patientId: String) {
     var leftCylindricalMag by remember { mutableStateOf("") }
     var rightCylindricalMag by remember { mutableStateOf("") }
     var snellenLeft by remember { mutableStateOf(6f) }
+    var snellenLeftN by remember { mutableStateOf(6f) }
     var snellenRight by remember { mutableStateOf(6f) }
+    var snellenRightN by remember { mutableStateOf(6f) }
     var isCylindricalLens by remember {mutableStateOf(false)}
 
 
@@ -86,7 +88,7 @@ fun newGlassOpto(navController: NavController, patientId: String) {
             val userDocRef = db.collection("users").document(userId)
             userDocRef.get().addOnSuccessListener { document ->
                 if (document != null && document.exists()) {
-                    optoName = document.getString("name") ?: "Optometrist"
+                    optoName = document.getString("fullName") ?: "Optometrist"
                     optoPosition = document.getString("role") ?: "Optometrist"
                 } else {
                     optoName = "Optometrist"
@@ -108,7 +110,7 @@ fun newGlassOpto(navController: NavController, patientId: String) {
             topBarId(
                 name = optoName,
                 position = optoPosition,
-                screenName = "With Glasses", // Indicate screen type in top bar
+                screenName = "New Prescription", // Indicate screen type in top bar
                 authViewModel = AuthViewModel(),
                 navController = navController
             )
@@ -118,7 +120,7 @@ fun newGlassOpto(navController: NavController, patientId: String) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(top = 16.dp)
+                .padding(top = 8.dp)
                 .verticalScroll(rememberScrollState())
         ) {
             if (isLoading) {
@@ -144,10 +146,18 @@ fun newGlassOpto(navController: NavController, patientId: String) {
                             modifier = Modifier.padding(16.dp),
                             verticalArrangement = Arrangement.spacedBy(16.dp)
                         ) {
-                            // Display patient details
-                            Text(text = "Name: ${patient.name}")
-                            Text(text = "ID: ${patient.id}")
-                            Text(text = "Age: ${patient.age} Years")
+                            Row (modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween){
+                                Text(text = "Name: ${patient.name}")
+                                Text(text = "ID: ${patient.id}")
+                            }
+                            Row(modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween) {
+                                Text(text = "Age: ${patient.age} Years")
+                                Text(text = "Date: ${patient.visitingDate}")
+                            }
+
+                            HorizontalDivider(thickness = 2.dp)
 
                             // Fields for examination details
                             Text(text = "Distance Vision")
@@ -252,34 +262,31 @@ fun newGlassOpto(navController: NavController, patientId: String) {
                                         VerticalSnellenSlider(
                                             value = snellenLeft,
                                             onValueChange = { snellenLeft = it },
-                                            label = "Left Eye",
-                                            modifier = Modifier.weight(1f)
+                                            label = "Left Eye"
                                         )
                                         Spacer(modifier = Modifier.width(16.dp))
                                         VerticalSnellenSlider(
                                             value = snellenRight,
                                             onValueChange = { snellenRight = it },
-                                            label = "Right Eye",
-                                            modifier = Modifier.weight(1f)
+                                            label = "Right Eye"
                                         )
 
                                     }
+                                    Spacer(modifier = Modifier.height(20.dp))
                                     Row(
                                         modifier = Modifier.fillMaxWidth(),
                                         horizontalArrangement = Arrangement.SpaceBetween
                                     ) {
                                         VerticalNearSlider(
-                                            value = snellenLeft,
-                                            onValueChange = { snellenLeft = it },
-                                            label = "Left Eye",
-                                            modifier = Modifier.weight(1f)
+                                            valueN = snellenLeftN,
+                                            onValueChange = { snellenLeftN = it },
+                                            label = "Left Eye"
                                         )
                                         Spacer(modifier = Modifier.width(16.dp))
                                         VerticalNearSlider(
-                                            value = snellenRight,
-                                            onValueChange = { snellenRight = it },
-                                            label = "Right Eye",
-                                            modifier = Modifier.weight(1f)
+                                            valueN = snellenRightN,
+                                            onValueChange = { snellenRightN = it },
+                                            label = "Right Eye"
                                         )
                                     }
 
@@ -290,7 +297,7 @@ fun newGlassOpto(navController: NavController, patientId: String) {
 
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceEvenly
+                                    horizontalArrangement = Arrangement.spacedBy(20.dp)
                                 ) {
                                     ElevatedButton(onClick = {
                                         navController.navigate("withoutGlassOpto/${patient.id}") {
@@ -311,7 +318,9 @@ fun newGlassOpto(navController: NavController, patientId: String) {
                                             leftCylindricalMag = leftCylindricalMag,
                                             rightCylindricalMag = rightCylindricalMag,
                                             snellenLeft = snellenLeft,
+                                            snellenLeftN = snellenLeftN,
                                             snellenRight = snellenRight,
+                                            snellenRightN = snellenRightN,
                                             db = db,
                                             context = context,
                                             screenType = "newGlassOpto"
@@ -319,7 +328,7 @@ fun newGlassOpto(navController: NavController, patientId: String) {
                                         navController.navigate("OptoPatients")
 
                                     }) {
-                                        Text(text = "Save Examination Details")
+                                        Text(text = "Save Examination")
                                     }
                                 }
                             }

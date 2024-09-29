@@ -54,7 +54,9 @@ fun withoutGlassOpto(navController: NavController, patientId: String) {
     var leftCylindricalMag by remember { mutableStateOf("") }
     var rightCylindricalMag by remember { mutableStateOf("") }
     var snellenLeft by remember { mutableStateOf(6f) }
+    var snellenLeftN by remember { mutableStateOf(6f) }
     var snellenRight by remember { mutableStateOf(6f) }
+    var snellenRightN by remember { mutableStateOf(6f) }
     var isCylindricalLens by remember { mutableStateOf(false) }
 
     LaunchedEffect(patientId) {
@@ -88,7 +90,7 @@ fun withoutGlassOpto(navController: NavController, patientId: String) {
             val userDocRef = db.collection("users").document(userId)
             userDocRef.get().addOnSuccessListener { document ->
                 if (document != null && document.exists()) {
-                    optoName = document.getString("name") ?: "Optometrist"
+                    optoName = document.getString("fullName") ?: "Optometrist"
                     optoPosition = document.getString("role") ?: "Optometrist"
                 } else {
                     optoName = "Optometrist"
@@ -120,7 +122,7 @@ fun withoutGlassOpto(navController: NavController, patientId: String) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(top = 16.dp)
+                .padding(top = 8.dp)
                 .verticalScroll(rememberScrollState())
         ) {
             if (isLoading) {
@@ -146,20 +148,18 @@ fun withoutGlassOpto(navController: NavController, patientId: String) {
                             modifier = Modifier.padding(16.dp),
                             verticalArrangement = Arrangement.spacedBy(16.dp)
                         ) {
-                            Row(
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Text(
-                                    text = "Name: ${patient.name}",
-                                    fontSize = 20.sp,
-                                )
-                                Spacer(modifier = Modifier.width(10.dp))
-                                Text(
-                                    text = "Id: ${patient.id}",
-                                    fontSize = 15.sp,
-                                )
+                            Row (modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween){
+                                Text(text = "Name: ${patient.name}")
+                                Text(text = "ID: ${patient.id}")
                             }
+                            Row(modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween) {
+                                Text(text = "Age: ${patient.age} Years")
+                                Text(text = "Date: ${patient.visitingDate}")
+                            }
+
+                            HorizontalDivider(thickness = 2.dp)
 
 
                             // Fields for examination details
@@ -222,32 +222,31 @@ fun withoutGlassOpto(navController: NavController, patientId: String) {
                             }
 
                             if (isCylindricalLens) {
-                                // Cylindrical Lens
-                                Text(text = "Cylindrical Lens")
+                                Text(
+                                    text = "Cylindrical Lens",
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 16.sp
+                                )
                                 Column(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    verticalArrangement = Arrangement.SpaceBetween
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(top = 8.dp),
+                                    verticalArrangement = Arrangement.spacedBy(16.dp)
                                 ) {
                                     OutlinedTextField(
                                         value = leftCylindricalMag,
                                         onValueChange = { leftCylindricalMag = it },
                                         label = { Text("Left Eye Magnitude") },
-                                        modifier = Modifier.weight(1f),
                                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                                     )
                                     SeekerWithTextField()
-
-
-
                                     OutlinedTextField(
                                         value = rightCylindricalMag,
                                         onValueChange = { rightCylindricalMag = it },
                                         label = { Text("Right Eye Magnitude") },
-                                        modifier = Modifier.weight(1f),
                                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                                     )
                                     SeekerWithTextField()
-
                                 }
                             }
 
@@ -261,34 +260,33 @@ fun withoutGlassOpto(navController: NavController, patientId: String) {
                                     VerticalSnellenSlider(
                                         value = snellenLeft,
                                         onValueChange = { snellenLeft = it },
-                                        label = "Left Eye",
-                                        modifier = Modifier.weight(1f)
+                                        label = "Left Eye"
                                     )
                                     Spacer(modifier = Modifier.width(16.dp))
                                     VerticalSnellenSlider(
                                         value = snellenRight,
                                         onValueChange = { snellenRight = it },
-                                        label = "Right Eye",
-                                        modifier = Modifier.weight(1f)
+                                        label = "Right Eye"
                                     )
 
                                 }
+
+                                Spacer(modifier = Modifier.height(20.dp))
+
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.SpaceBetween
                                 ) {
                                     VerticalNearSlider(
-                                        value = snellenLeft,
-                                        onValueChange = { snellenLeft = it },
-                                        label = "Left Eye",
-                                        modifier = Modifier.weight(1f)
+                                        valueN = snellenLeftN,
+                                        onValueChange = { snellenLeftN = it },
+                                        label = "Left Eye"
                                     )
                                     Spacer(modifier = Modifier.width(16.dp))
                                     VerticalNearSlider(
-                                        value = snellenRight,
-                                        onValueChange = { snellenRight = it },
-                                        label = "Right Eye",
-                                        modifier = Modifier.weight(1f)
+                                        valueN = snellenRightN,
+                                        onValueChange = { snellenRightN = it },
+                                        label = "Right Eye"
                                     )
                                 }
 
@@ -300,7 +298,7 @@ fun withoutGlassOpto(navController: NavController, patientId: String) {
                             // Save and navigation buttons
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceEvenly
+                                horizontalArrangement = Arrangement.spacedBy(20.dp)
                             ) {
                                 ElevatedButton(onClick = {
                                     navController.navigate("withGlassOpto/${patient.id}")
@@ -320,14 +318,16 @@ fun withoutGlassOpto(navController: NavController, patientId: String) {
                                         leftCylindricalMag = leftCylindricalMag,
                                         rightCylindricalMag = rightCylindricalMag,
                                         snellenLeft = snellenLeft,
+                                        snellenLeftN = snellenLeftN,
                                         snellenRight = snellenRight,
+                                        snellenRightN = snellenRightN,
                                         db = db,
                                         context = context,
                                         screenType = "withoutGlassOpto"
                                     )
                                     navController.navigate("newGlassOpto/${patient.id}")
                                 }) {
-                                    Text(text = "Save Examination Details")
+                                    Text(text = "Save Examination")
                                 }
                             }
                         }
@@ -349,7 +349,9 @@ fun saveOptoData(
     leftCylindricalMag: String,
     rightCylindricalMag: String,
     snellenLeft: Float,
+    snellenLeftN: Float,
     snellenRight: Float,
+    snellenRightN: Float,
     db: FirebaseFirestore,
     context: Context,
     screenType: String // To differentiate between screens
@@ -365,7 +367,9 @@ fun saveOptoData(
         "Left Cylindrical Magnitude" to leftCylindricalMag,
         "Right Cylindrical Magnitude" to rightCylindricalMag,
         "Snellen Left" to snellenLeft,
-        "Snellen Right" to snellenRight
+        "Snellen Left" to snellenLeftN,
+        "Snellen Right" to snellenRight,
+        "Snellen Right" to snellenRightN
     )
 
     // Collection names based on screen type
@@ -388,9 +392,8 @@ fun saveOptoData(
 }
 
 @Composable
-fun VerticalSnellenSlider(value: Float, onValueChange: (Float) -> Unit, label: String, modifier: Modifier = Modifier) {
+fun VerticalSnellenSlider(value: Float, onValueChange: (Float) -> Unit, label: String) {
     Column(
-        modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(text = "$label: 6/${value.toInt()}")
@@ -398,8 +401,8 @@ fun VerticalSnellenSlider(value: Float, onValueChange: (Float) -> Unit, label: S
         // Use Box to allow vertical rotation of the Slider
         Box(
             modifier = Modifier
-                .height(300.dp) // Height of the vertical slider
-                .width(40.dp) // Width of the vertical slider (to make it visible)
+                .height(200.dp) // Height of the vertical slider
+                .width(60.dp) // Width of the vertical slider (to make it visible)
                 .background(Color(0xFFE7F0FF), RoundedCornerShape(16.dp))
                 .rotate(90f) // Rotate the Slider to vertical
         ) {
@@ -411,7 +414,8 @@ fun VerticalSnellenSlider(value: Float, onValueChange: (Float) -> Unit, label: S
                 valueRange = 6f..60f,
                 steps = 10,
                 modifier = Modifier
-                    .fillMaxHeight() // Fill the available height in the rotated Box
+                    .fillMaxHeight()
+                    .height(500.dp)// Fill the available height in the rotated Box
                     .align(Alignment.Center) // Center the Slider in the Box
             )
         }
@@ -419,35 +423,32 @@ fun VerticalSnellenSlider(value: Float, onValueChange: (Float) -> Unit, label: S
 }
 
 @Composable
-fun VerticalNearSlider(value: Float, onValueChange: (Float) -> Unit, label: String, modifier: Modifier = Modifier) {
+fun VerticalNearSlider(valueN: Float, onValueChange: (Float) -> Unit, label: String) {
     Column(
-        modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // Display the label and the formatted near-sight value
-        Text(text = "$label: N${value.toInt()}")
+        Text(text = "$label: N${valueN.toInt()}")
 
         // Use Box to allow vertical rotation of the Slider
         Box(
             modifier = Modifier
-                .height(300.dp) // Height of the vertical slider
-                .width(40.dp) // Width of the vertical slider (to make it visible)
+                .height(200.dp) // Height of the vertical slider (same as the slider height)
+                .width(60.dp)
                 .background(Color(0xFFE7F0FF), RoundedCornerShape(16.dp))
-                .rotate(90f) // Rotate the Slider to vertical
         ) {
             Slider(
-
-                value = value,
+                value = valueN,
                 onValueChange = { newValue ->
                     onValueChange(newValue.coerceIn(6f, 60f)) // Coerce value to be within the range
                 },
                 valueRange = 6f..60f,
                 steps = 10,
                 modifier = Modifier
-                    .fillMaxHeight() // Fill the available height in the rotated Box
+                    .fillMaxHeight() // Fill the available height
                     .align(Alignment.Center) // Center the Slider in the Box
-                    .height(70.dp) // Height of the vertical slider
-                    .width(40.dp), // Width of the vertical slider (to make it visible)
+                    .height(1000.dp) // Height of the vertical slider
+                    .rotate(90f), // Rotate the Slider vertically
             )
         }
     }

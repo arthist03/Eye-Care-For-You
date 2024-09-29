@@ -29,6 +29,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -36,15 +37,17 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.eyecare.Extra.AuthState
 import com.example.eyecare.Extra.AuthViewModel
+import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.tasks.await
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SignUpScreen(navController: NavController, authViewModel: AuthViewModel) {
+fun SignUpScreen(navController: NavController, authViewModel: AuthViewModel, userId: String?) {
     var email by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
     var confirmPassword by rememberSaveable { mutableStateOf("") }
     var name by rememberSaveable { mutableStateOf("") }
-    var phone by rememberSaveable { mutableStateOf("") }
+    var phone by remember { mutableStateOf("") }
     var selectedRole by rememberSaveable { mutableStateOf("") }
     var selectedTitle by rememberSaveable { mutableStateOf("Mr.") }
     var passwordStrength by remember { mutableStateOf(PasswordStrength.Weak) }
@@ -55,25 +58,49 @@ fun SignUpScreen(navController: NavController, authViewModel: AuthViewModel) {
     var roleDropdownExpanded by remember { mutableStateOf(false) }
     var titleDropdownExpanded by remember { mutableStateOf(false) }
 
-    val role = listOf("HOD", "Optometrist", "Doctor", "Receptionist")
-    val title = listOf("Mr.", "Mrs.", "Ms.", "Dr.")
+    var role = listOf("HOD", "Optometrist", "Doctor", "Receptionist")
+    var title = listOf("Mr.", "Mrs.", "Ms.", "Dr.")
     val authState = authViewModel.authState.observeAsState()
     val context = LocalContext.current
+    val db = FirebaseFirestore.getInstance()
 
-    LaunchedEffect(authState.value) {
-        when (authState.value) {
-            is AuthState.RedirectToHOD -> navController.navigate("hodScreen")
-            is AuthState.RedirectToDoctor -> navController.navigate("doctorScreen")
-            is AuthState.RedirectToOptometrist -> navController.navigate("OptoPatients")
-            is AuthState.RedirectToReceptionist -> navController.navigate("receptionistScreen")
-            is AuthState.Error -> Toast.makeText(
-                context,
-                (authState.value as AuthState.Error).message,
-                Toast.LENGTH_SHORT
-            ).show()
-            else -> Unit
+
+    LaunchedEffect(userId) {
+        val userDocRef = db.collection("users").document(userId ?: "")
+
+        userDocRef.get().addOnSuccessListener { document ->
+            if (document.exists()) {
+                name = document.getString("name") ?: ""
+                email = document.getString("email") ?: ""
+                password = document.getString("password") ?: ""
+                confirmPassword = document.getString("confirmPassword") ?: ""
+                title = listOf(document.getString("title") ?: "")
+                selectedRole = document.getString("role") ?: ""
+                phone = document.getString("phone") ?: ""
+            } else {
+                Toast.makeText(context, "User not found", Toast.LENGTH_LONG).show()
+            }
+        }.addOnFailureListener {
+            Toast.makeText(context, "Failed to fetch user details", Toast.LENGTH_LONG).show()
         }
+
     }
+
+
+//    LaunchedEffect(authState.value) {
+//        when (authState.value) {
+//            is AuthState.RedirectToHOD -> navController.navigate("hodScreen")
+//            is AuthState.RedirectToDoctor -> navController.navigate("doctorScreen")
+//            is AuthState.RedirectToOptometrist -> navController.navigate("OptoPatients")
+//            is AuthState.RedirectToReceptionist -> navController.navigate("receptionistScreen")
+//            is AuthState.Error -> Toast.makeText(
+//                context,
+//                (authState.value as AuthState.Error).message,
+//                Toast.LENGTH_SHORT
+//            ).show()
+//            else -> Unit
+//        }
+//    }
 
 
     fun checkPasswordStrength(password: String): PasswordStrength {
@@ -125,11 +152,11 @@ fun SignUpScreen(navController: NavController, authViewModel: AuthViewModel) {
                     tint = Color.Black,
                     modifier = Modifier
                         .size(30.dp)
-                        .clickable { navController.navigate("home") }
+                        .clickable { navController.navigate("adminPage") }
                 )
 
                 Text(
-                    text = "Sign Up",
+                    text = "Add User",
                     color = Color.Black,
                     fontWeight = FontWeight.Bold,
                     fontSize = 40.sp,
@@ -398,11 +425,13 @@ fun SignUpScreen(navController: NavController, authViewModel: AuthViewModel) {
                             email,
                             password,
                             confirmPassword,
-                            fullName,
+                            name,
                             phone,
-                            selectedRole
+                            selectedRole,
+                            fullName
                         )
                     }
+                    navController.navigate("adminPage")
                 },
                 modifier = Modifier
                     .clip(RoundedCornerShape(40.dp))
@@ -420,3 +449,5 @@ fun SignUpScreen(navController: NavController, authViewModel: AuthViewModel) {
 enum class PasswordStrength {
     Weak, Medium, Strong
 }
+
+// Suspend function to generate a unique patient ID
