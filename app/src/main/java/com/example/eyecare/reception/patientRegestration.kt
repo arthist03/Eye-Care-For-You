@@ -32,7 +32,9 @@ import androidx.navigation.NavController
 import com.example.eyecare.Extra.AuthViewModel
 import com.example.eyecare.topBar.topBarId
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -73,6 +75,14 @@ fun PatientDetailsScreen(navController: NavController, patientId: String?) {
                 address = TextFieldValue(document.getString("address") ?: "")
                 phone = TextFieldValue(document.getString("phone") ?: "")
                 selectedGender = document.getString("gender") ?: "Male"
+
+                // Fetch and set the date of birth if it exists
+                val dobString = document.getString("dateOfBirth")
+                if (!dobString.isNullOrEmpty()) {
+                    val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+                    val dob = LocalDate.parse(dobString, formatter)
+                    dateOfBirth = dob // assuming selectedDateOfBirth is a LocalDate
+                }
             } else {
                 Toast.makeText(context, "Patient not found", Toast.LENGTH_LONG).show()
             }
@@ -80,6 +90,7 @@ fun PatientDetailsScreen(navController: NavController, patientId: String?) {
             Toast.makeText(context, "Failed to fetch patient details", Toast.LENGTH_LONG).show()
         }
     }
+
 
 
 
@@ -129,7 +140,7 @@ fun PatientDetailsScreen(navController: NavController, patientId: String?) {
     Scaffold(
         topBar = {
             topBarId(
-                name = receptionistName,
+                fullName = receptionistName,
                 position = receptionistPosition,
                 screenName = "Patient Registration",
                 authViewModel = AuthViewModel(),
@@ -334,11 +345,6 @@ fun PatientDetailsScreen(navController: NavController, patientId: String?) {
     }
 }
 
-// Function to calculate age from birth date
-fun calculateAge(dateOfBirth: LocalDate, visitingDate: LocalDate): String {
-    val period = Period.between(dateOfBirth, visitingDate)
-    return period.years.toString()
-}
 
 // Suspend function to generate a unique patient ID
 suspend fun generateUniquePatientId(db: FirebaseFirestore): String {
@@ -352,7 +358,13 @@ suspend fun generateUniquePatientId(db: FirebaseFirestore): String {
     return uniqueId
 }
 
-// Function to save patient data to Firestore with generated patient ID
+
+// Function to calculate age from birth date
+fun calculateAge(dateOfBirth: LocalDate, visitingDate: LocalDate): String {
+    val period = Period.between(dateOfBirth, visitingDate)
+    return period.years.toString()
+}
+
 fun savePatientData(
     name: String,
     address: String,
@@ -366,66 +378,151 @@ fun savePatientData(
     age: String,
     id: String?
 ) {
-    // Use coroutine to handle Firestore operations
     CoroutineScope(Dispatchers.IO).launch {
         try {
-            // Generate a unique patient ID
-            val id = generateUniquePatientId(db)
+            // Check if a patient with the same name and ID already exists
+            val existingPatientQuery = db.collection("patients")
+                .whereEqualTo("name", name)
+                .whereEqualTo("id", id)
+                .get()
+                .await()
 
-            // Create a map of patient data
-            val patientData = hashMapOf(
+            // If the patient exists, use their existing ID
+            val patientId = if (existingPatientQuery.documents.isNotEmpty()) {
+                existingPatientQuery.documents.first().id
+            } else {
+                // Generate a unique patient ID
+                generateUniquePatientId(db)
+            }
+
+            // Create a map of patient details
+            val patientDetails = hashMapOf<String, Any>(
                 "name" to name,
                 "address" to address,
                 "phone" to phone,
                 "gender" to gender,
-                "dateOfBirth" to dateOfBirth?.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
-                "visitingDate" to visitingDate.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
-                "imageUri" to imageUri,
-                "id" to id, // Add the patient ID to the data
-                "age" to age
-            )
+                "age" to age,
+                "id" to patientId
+                )
 
-            // Store the patient data using the generated patient ID as the document ID
-            db.collection("patients").document(id).set(patientData).await()
-
-            // Show a toast message on success
-            withContext(Dispatchers.Main) {
-                Toast.makeText(navController.context, "Patient saved successfully!", Toast.LENGTH_SHORT).show()
+            // Only add non-nullable fields to the map
+            dateOfBirth?.let {
+                patientDetails["dateOfBirth"] = it.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+            }
+            imageUri?.let {
+                patientDetails["imageUri"] = it
             }
 
-            // Navigate back or show success feedback
+            // Save patient details in the main document
+            db.collection("patients").document(patientId)
+                .set(patientDetails, SetOptions.merge()).await()
+
+            // Assign the optometrist to the patient
+            val (optometristId, optometristName) = assignOptometristToPatient(db, patientId, visitingDate)
+
+            // Prepare visit data
+            val visitData = hashMapOf<String, Any>(
+                "assignedOptometristId" to optometristId,
+                "assignedOptometristName" to optometristName,
+                "visitingDate" to visitingDate.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) // Format as dd/MM/yyyy
+            )
+
+            // Save visit data under visits collection with the full date as the document ID in dd_MM_yyyy format
+            db.collection("patients").document(patientId)
+                .collection("visits")
+                .document(visitingDate.format(DateTimeFormatter.ofPattern("dd_MM_yyyy"))) // Format as dd_MM_yyyy for document ID
+                .set(visitData, SetOptions.merge()).await()
+
+            // Assign the patient to the optometrist with a date-based document
+            assignPatientToOptometristWithDate(
+                db = db,
+                patientName = name,  // Use patient's name instead of ID
+                optometristId = optometristId,
+                optometristName = optometristName,  // Use optometrist's name
+                patientData = patientDetails,  // Pass patient details
+                visitingDate = visitingDate
+            )
+
+            // Show a success message
+            withContext(Dispatchers.Main) {
+                Toast.makeText(navController.context, "$name visit saved and assigned to $optometristName!", Toast.LENGTH_SHORT).show()
+            }
 
         } catch (e: Exception) {
             Log.e("PatientDetailsScreen", "Error saving patient data", e)
             withContext(Dispatchers.Main) {
-                Toast.makeText(navController.context, "Failed to save patient data.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(navController.context, "Failed to save patient visit data.", Toast.LENGTH_SHORT).show()
             }
         }
     }
 }
 
+suspend fun assignPatientToOptometristWithDate(
+    db: FirebaseFirestore,
+    patientName: String,  // Use patient name instead of ID
+    optometristId: String,
+    optometristName: String,  // Pass optometrist's name
+    patientData: Map<String, Any>,
+    visitingDate: LocalDate
+) {
+    // Format the visiting date to use as a document ID
+    val dateStr = visitingDate.format(DateTimeFormatter.ofPattern("dd_MM_yyyy"))
 
-/*
-suspend fun generateUniquePatientId(db: FirebaseFirestore): String {
-    val existingIds = mutableListOf<String>()
-    val patientsSnapshot = db.collection("patients").get().await()
+    // Construct the patient-specific data
+    val patientDataWithOptometrist = patientData + mapOf(
+        "assignedOptometristName" to optometristName
+    )
 
-    for (document in patientsSnapshot.documents) {
-        existingIds.add(document.id)
+    // Save the patient data directly as a document within the date document
+    db.collection("users")
+        .document(optometristId)
+        .collection("AssignedPatients")
+        .document(dateStr)  // Date document in dd/MM/yyyy format
+        .set(mapOf(patientName to patientDataWithOptometrist), SetOptions.merge())  // Use patient's name as the key
+        .await()
+}
+
+suspend fun assignOptometristToPatient(db: FirebaseFirestore, patientId: String, visitingDate: LocalDate): Pair<String, String> {
+    val usersCollection = db.collection("users")
+
+    // Get all users with the role "OPTOMETRIST"
+    val optometrists = usersCollection
+        .whereEqualTo("role", "OPTOMETRIST")
+        .get()
+        .await()
+        .documents
+
+    var selectedOptometristId: String? = null
+    var selectedOptometristName: String? = null
+    var leastAssignedPatients = Int.MAX_VALUE
+
+    val visitingDateStr = visitingDate.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+
+    for (optometrist in optometrists) {
+        val assignedPatientsCollection = usersCollection.document(optometrist.id)
+            .collection("AssignedPatients")
+            .document(visitingDateStr)
+            .get()
+            .await()
+
+        val assignedPatientsCount = assignedPatientsCollection.data?.size ?: 0
+
+        // Find the optometrist with the least number of assigned patients for the given date
+        if (assignedPatientsCount < leastAssignedPatients) {
+            selectedOptometristId = optometrist.id
+            selectedOptometristName = optometrist.getString("fullName") ?: "Unknown"
+            leastAssignedPatients = assignedPatientsCount
+        }
     }
 
-    var newPatientId: String
-    do {
-        newPatientId = generateRandomAlphanumericId(8) // Change the length if needed
-    } while (existingIds.contains(newPatientId))
+    // Update the selected optometrist's assigned patients list for the visiting date
+    selectedOptometristId?.let { optometristId ->
+        db.collection("users").document(optometristId)
+            .collection("AssignedPatients")
+            .document(visitingDateStr)
+            .set(mapOf(patientId to true), SetOptions.merge())
+            .await()
+    }
 
-    return newPatientId
+    return Pair(selectedOptometristId ?: throw Exception("No available optometrist found"), selectedOptometristName ?: "Unknown")
 }
-
-fun generateRandomAlphanumericId(length: Int): String {
-    val chars = "0123456789"
-    return (1..7)
-        .map { chars.random() }
-        .joinToString("")
-}
-*/

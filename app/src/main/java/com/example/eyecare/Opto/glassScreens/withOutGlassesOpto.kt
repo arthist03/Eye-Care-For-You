@@ -27,8 +27,14 @@ import com.example.eyecare.Extra.LoadingAnimation
 import com.example.eyecare.Opto.Patient
 import com.example.eyecare.topBar.topBarId
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.DocumentReference
+import com.google.firebase.firestore.DocumentSnapshot
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 import java.text.SimpleDateFormat
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import java.util.Date
 import java.util.Locale
 
@@ -60,29 +66,88 @@ fun withoutGlassOpto(navController: NavController, patientId: String) {
     var isCylindricalLens by remember { mutableStateOf(false) }
 
     LaunchedEffect(patientId) {
-        val todayDate = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date())
-
+        // Fetch patient details
         db.collection("patients").document(patientId).get()
             .addOnSuccessListener { document ->
                 if (document != null && document.exists()) {
-                    val patient = document.toObject(Patient::class.java)
-                    val visitingDate = document.getString("visitingDate") // Assuming visitingDate is stored as a string in "dd/MM/yyyy" format
+                    patientDetails = document.toObject(Patient::class.java)
 
-                    if (visitingDate == todayDate) {
-                        patientDetails = patient
-                    } else {
-                        errorMessage = "No patient visit scheduled for today."
-                    }
+                    // Fetch available visit dates dynamically
+                    db.collection("patients")
+                        .document(patientId)
+                        .collection("visits")
+                        .get()
+                        .addOnSuccessListener { visitDocuments ->
+                            if (!visitDocuments.isEmpty) {
+                                val firstVisitDocument = visitDocuments.documents.first()
+
+                                // Fetching the formatted visiting date
+                                val formattedVisitingDate = firstVisitDocument.id
+                                val visitingDate = formattedVisitingDate // Assuming both formats are now aligned
+
+                                // Log/Toast for debugging
+                                Toast.makeText(context, "Fetching Visit Date: $formattedVisitingDate", Toast.LENGTH_LONG).show()
+
+                                // Fetch optometric data for the visit date
+                                fetchVisitingDate(patientId, visitingDate, db, { visitingDateResult ->
+                                    patientDetails = patientDetails?.copy(visitingDate = visitingDateResult)
+
+                                    // Fetch the optometric examination data
+                                    db.collection("patients")
+                                        .document(patientId)
+                                        .collection("visits")
+                                        .document(visitingDate)
+                                        .collection("withoutGlassOpto")
+                                        .document(visitingDate)
+                                        .get()
+                                        .addOnSuccessListener { examDoc ->
+                                            if (examDoc.exists()) {
+                                                // Pre-fill the fields with the existing data
+                                                leftEyeDistance = examDoc.getString("Left Eye Distance") ?: ""
+                                                rightEyeDistance = examDoc.getString("Right Eye Distance") ?: ""
+                                                leftEyeNear = examDoc.getString("Left Eye Near") ?: ""
+                                                rightEyeNear = examDoc.getString("Right Eye Near") ?: ""
+                                                leftCylindricalMag = examDoc.getString("Left Cylindrical Magnitude") ?: ""
+                                                rightCylindricalMag = examDoc.getString("Right Cylindrical Magnitude") ?: ""
+                                                snellenLeft = examDoc.getDouble("Snellen Left")?.toFloat() ?: 6f
+                                                snellenLeftN = examDoc.getDouble("Snellen Left Near")?.toFloat() ?: 6f
+                                                snellenRight = examDoc.getDouble("Snellen Right")?.toFloat() ?: 6f
+                                                snellenRightN = examDoc.getDouble("Snellen Right Near")?.toFloat() ?: 6f
+                                                isCylindricalLens = examDoc.getBoolean("isCylindricalLens") ?: false
+                                            } else {
+                                                // Handle if no data found
+                                                Toast.makeText(context, "No exam data found for $visitingDate", Toast.LENGTH_SHORT).show()
+                                            }
+                                            isLoading = false
+                                        }
+                                        .addOnFailureListener { exception ->
+                                            errorMessage = "Failed to fetch exam data: ${exception.message}"
+                                            isLoading = false
+                                        }
+                                }, { error ->
+                                    errorMessage = error
+                                    isLoading = false
+                                })
+                            } else {
+                                errorMessage = "No visits found for this patient"
+                                isLoading = false
+                            }
+                        }
+                        .addOnFailureListener { exception ->
+                            errorMessage = "Failed to fetch visit dates: ${exception.message}"
+                            isLoading = false
+                        }
                 } else {
                     errorMessage = "Patient not found"
+                    isLoading = false
                 }
-                isLoading = false
             }
             .addOnFailureListener { exception ->
                 errorMessage = "Failed to fetch patient details: ${exception.message}"
                 isLoading = false
             }
     }
+
 
     // Fetch optometrist details from Firestore
     LaunchedEffect(currentUserId) {
@@ -110,7 +175,7 @@ fun withoutGlassOpto(navController: NavController, patientId: String) {
     Scaffold(
         topBar = {
             topBarId(
-                name = optoName,
+                fullName = optoName,
                 position = optoPosition,
                 screenName = "Without Glasses", // Indicate screen type in top bar
                 authViewModel = AuthViewModel(),
@@ -298,7 +363,7 @@ fun withoutGlassOpto(navController: NavController, patientId: String) {
                             // Save and navigation buttons
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(20.dp)
+                                horizontalArrangement = Arrangement.SpaceBetween
                             ) {
                                 ElevatedButton(onClick = {
                                     navController.navigate("withGlassOpto/${patient.id}")
@@ -338,7 +403,15 @@ fun withoutGlassOpto(navController: NavController, patientId: String) {
     }
 }
 
+
+
+
+
+
+
+
 fun saveOptoData(
+    db: FirebaseFirestore,
     patientId: String,
     name: String,
     age: String,
@@ -352,11 +425,13 @@ fun saveOptoData(
     snellenLeftN: Float,
     snellenRight: Float,
     snellenRightN: Float,
-    db: FirebaseFirestore,
     context: Context,
     screenType: String // To differentiate between screens
 ) {
-    val examinationDetails = hashMapOf(
+    val currentDate = SimpleDateFormat("dd_MM_yyyy", Locale.getDefault()).format(Date())
+
+    // Create a map for examination details
+    val examinationDetails = hashMapOf<String, Any>(
         "Patient Id" to patientId,
         "Name" to name,
         "Age" to age,
@@ -367,29 +442,168 @@ fun saveOptoData(
         "Left Cylindrical Magnitude" to leftCylindricalMag,
         "Right Cylindrical Magnitude" to rightCylindricalMag,
         "Snellen Left" to snellenLeft,
-        "Snellen Left" to snellenLeftN,
+        "Snellen Left Near" to snellenLeftN,
         "Snellen Right" to snellenRight,
-        "Snellen Right" to snellenRightN
+        "Snellen Right Near" to snellenRightN,
+        "Screen Type" to screenType,
+        "Date" to currentDate
     )
 
-    // Collection names based on screen type
-    val collectionName = when (screenType) {
-        "withoutGlassOpto" -> "optoWithOutGlasses"
-        "withGlassOpto" -> "optoWithGlasses"
-        "newGlassOpto" -> "optoNewGlass"
-        else -> "examinations"
-    }
-
-    // Save data in Firestore
-    db.collection(collectionName).document(patientId)
-        .set(examinationDetails)
+    // Create or update the visit document with the visited date
+    db.collection("patients").document(patientId)
+        .collection("visits")
+        .document(currentDate) // Document represents the visited date
+        .set(hashMapOf("Date" to currentDate), SetOptions.merge()) // Store the date (merge if exists)
         .addOnSuccessListener {
-            Toast.makeText(context, "Data saved successfully to ${name} & ${patientId} ", Toast.LENGTH_SHORT).show()
+            // Now add or update the examination details under the screenType collection
+            db.collection("patients").document(patientId)
+                .collection("visits")
+                .document(currentDate)
+                .collection(screenType) // Use screenType as sub-collection name
+                .document(currentDate) // Use a fixed document name such as "data"
+                .set(examinationDetails, SetOptions.merge()) // Merge the data into the document
+                .addOnSuccessListener {
+                    // Only assign doctor if screenType is "New Prescription"
+                    if (screenType == "newGlassOpto") {
+                        assignDoctorIfNeeded(db, patientId, currentDate, context)
+                    }
+                }
+                .addOnFailureListener { exception ->
+                    Toast.makeText(context, "Failed to save data: ${exception.message}", Toast.LENGTH_SHORT).show()
+                }
         }
         .addOnFailureListener { exception ->
-            Toast.makeText(context, "Failed to save data: ${exception.message}", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "Failed to create visit document: ${exception.message}", Toast.LENGTH_SHORT).show()
         }
 }
+
+private fun assignDoctorIfNeeded(
+    db: FirebaseFirestore,
+    patientId: String,
+    visitDate: String,
+    context: Context
+) {
+    // Check if the patient already has an assigned doctor
+    db.collection("patients").document(patientId)
+        .get()
+        .addOnSuccessListener { patientDoc ->
+            if (patientDoc.exists()) {
+                // Get patient details from the document
+                val name = patientDoc.getString("name") ?: "Unknown"
+                val address = patientDoc.getString("address")
+                val phone = patientDoc.getString("phone")
+                val gender = patientDoc.getString("gender") ?: "Unknown"
+                val age = patientDoc.getString("age") ?: "Unknown"
+                val dateOfBirth = patientDoc.getString("dateOfBirth")
+                val imageUri = patientDoc.getString("imageUri")
+
+                // Proceed to find a doctor if the patient doesn't have one
+                db.collection("patients").document(patientId)
+                    .collection("visits").document(visitDate)
+                    .get()
+                    .addOnSuccessListener { visitDoc ->
+                        val assignedDoctorId = visitDoc.getString("AssignedDoctorId")
+                        if (assignedDoctorId != null) {
+                            Toast.makeText(context, "Patient is already assigned to a doctor.", Toast.LENGTH_SHORT).show()
+                        } else {
+                            // No doctor assigned, find a new doctor
+                            findAvailableDoctor(
+                                db, patientId, visitDate, context,
+                                name, address, phone, gender, age, dateOfBirth, imageUri
+                            )
+                        }
+                    }
+                    .addOnFailureListener { exception ->
+                        Toast.makeText(context, "Failed to check doctor assignment: ${exception.message}", Toast.LENGTH_SHORT).show()
+                    }
+            } else {
+                Toast.makeText(context, "Patient does not exist.", Toast.LENGTH_SHORT).show()
+            }
+        }
+        .addOnFailureListener { exception ->
+            Toast.makeText(context, "Failed to fetch patient details: ${exception.message}", Toast.LENGTH_SHORT).show()
+        }
+}
+
+private fun findAvailableDoctor(
+    db: FirebaseFirestore,
+    patientId: String,
+    visitDate: String,
+    context: Context,
+    name: String,
+    address: String?,
+    phone: String?,
+    gender: String,
+    age: String,
+    dateOfBirth: String?,
+    imageUri: String?
+) {
+    // Fetch doctors with role DOCTOR
+    db.collection("users")
+        .whereEqualTo("role", "DOCTOR")
+        .get()
+        .addOnSuccessListener { doctorDocs ->
+            if (doctorDocs.isEmpty) {
+                Toast.makeText(context, "No doctors available.", Toast.LENGTH_SHORT).show()
+                return@addOnSuccessListener
+            }
+
+            // Logic to choose a doctor (this can be improved based on your criteria)
+            val doctorDoc = doctorDocs.documents.first() // For simplicity, picking the first available doctor
+            val doctorId = doctorDoc.id
+            val doctorName = doctorDoc.getString("fullName") ?: "Unknown Doctor"
+
+            // Assign the doctor to the patient for this visit
+            val visitRef = db.collection("patients").document(patientId)
+                .collection("visits").document(visitDate)
+
+            visitRef.update("AssignedDoctorId", doctorId, "doctorName", doctorName)
+                .addOnSuccessListener {
+                    // Prepare patient details map
+                    val patientDetails = hashMapOf<String, Any>(
+                        "name" to name,
+                        "gender" to gender,
+                        "age" to age,
+                        "id" to patientId
+                    )
+
+                    // Only add non-nullable fields to the map
+                    address?.let { patientDetails["address"] = it }
+                    phone?.let { patientDetails["phone"] = it }
+                    dateOfBirth?.let { patientDetails["dateOfBirth"] = it }
+                    imageUri?.let { patientDetails["imageUri"] = it }
+
+                    // Save in doctor's collection
+                    val doctorPatientsRef = db.collection("users").document(doctorId)
+                        .collection("AssignedPatients").document(visitDate)
+
+                    doctorPatientsRef.set(
+                        hashMapOf(
+                            "visitingDate" to visitDate,
+                            "patientId" to patientId,
+                            "patientDetails" to patientDetails // Store all patient details here
+                        ),
+                        SetOptions.merge()
+                    ).addOnSuccessListener {
+                        Toast.makeText(context, "Doctor assigned successfully: $doctorName", Toast.LENGTH_SHORT).show()
+                    }.addOnFailureListener { exception ->
+                        Toast.makeText(context, "Failed to assign doctor to patient: ${exception.message}", Toast.LENGTH_SHORT).show()
+                    }
+                }
+                .addOnFailureListener { exception ->
+                    Toast.makeText(context, "Failed to assign doctor: ${exception.message}", Toast.LENGTH_SHORT).show()
+                }
+        }
+        .addOnFailureListener { exception ->
+            Toast.makeText(context, "Failed to fetch doctors: ${exception.message}", Toast.LENGTH_SHORT).show()
+        }
+}
+
+
+
+
+
+
 
 @Composable
 fun VerticalSnellenSlider(value: Float, onValueChange: (Float) -> Unit, label: String) {
@@ -401,10 +615,9 @@ fun VerticalSnellenSlider(value: Float, onValueChange: (Float) -> Unit, label: S
         // Use Box to allow vertical rotation of the Slider
         Box(
             modifier = Modifier
-                .height(200.dp) // Height of the vertical slider
-                .width(60.dp) // Width of the vertical slider (to make it visible)
+                .height(60.dp) // Height of the vertical slider
+                .width(150.dp) // Width of the vertical slider (to make it visible)
                 .background(Color(0xFFE7F0FF), RoundedCornerShape(16.dp))
-                .rotate(90f) // Rotate the Slider to vertical
         ) {
             Slider(
                 value = value,
@@ -415,7 +628,7 @@ fun VerticalSnellenSlider(value: Float, onValueChange: (Float) -> Unit, label: S
                 steps = 10,
                 modifier = Modifier
                     .fillMaxHeight()
-                    .height(500.dp)// Fill the available height in the rotated Box
+                    .height(10.dp)// Fill the available height in the rotated Box
                     .align(Alignment.Center) // Center the Slider in the Box
             )
         }
@@ -428,13 +641,13 @@ fun VerticalNearSlider(valueN: Float, onValueChange: (Float) -> Unit, label: Str
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // Display the label and the formatted near-sight value
-        Text(text = "$label: N${valueN.toInt()}")
+        Text(text = "$label: N/${valueN.toInt()}")
 
         // Use Box to allow vertical rotation of the Slider
         Box(
             modifier = Modifier
-                .height(200.dp) // Height of the vertical slider (same as the slider height)
-                .width(60.dp)
+                .height(60.dp) // Height of the vertical slider (same as the slider height)
+                .width(150.dp)
                 .background(Color(0xFFE7F0FF), RoundedCornerShape(16.dp))
         ) {
             Slider(
@@ -447,8 +660,7 @@ fun VerticalNearSlider(valueN: Float, onValueChange: (Float) -> Unit, label: Str
                 modifier = Modifier
                     .fillMaxHeight() // Fill the available height
                     .align(Alignment.Center) // Center the Slider in the Box
-                    .height(1000.dp) // Height of the vertical slider
-                    .rotate(90f), // Rotate the Slider vertically
+                    .height(10.dp) // Height of the vertical slider
             )
         }
     }

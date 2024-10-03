@@ -4,6 +4,9 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.eyecare.Doctor.docGlassScreens.newGlassDoc
+import com.example.eyecare.Doctor.docGlassScreens.withGlassDoc
+import com.example.eyecare.Doctor.docGlassScreens.withoutGlassDoc
 import com.example.eyecare.Doctor.doctorcatalog
 import com.example.eyecare.HOD.hodcatalog
 import com.example.eyecare.Opto.PatientCatalogPage
@@ -28,7 +31,7 @@ import com.example.eyecare.topBar.screenName
 fun AppNavHost(authViewModel: AuthViewModel) {
     val navController = rememberNavController()
     NavHost(navController = navController, startDestination = "home") {
-        composable("home") { homeScreen(navController, authViewModel) }
+        composable("home") { homeScreen(navController) }
         composable("login") { LoginScreen(navController,authViewModel) }
         composable("doctorScreen") { pageDoctors(navController, authViewModel) }
         composable("hodScreen") { pageHOD(navController,authViewModel) }
@@ -64,10 +67,24 @@ fun AppNavHost(authViewModel: AuthViewModel) {
             newGlassOpto(navController = navController, patientId = patientId)
         }
 
+        composable("withGlassDoc/{patientId}") { backStackEntry ->
+            val patientId = backStackEntry.arguments?.getString("patientId") ?: ""
+            withGlassDoc(navController = navController, patientId = patientId)
+        }
+            composable("withoutGlassDoc/{patientId}") { backStackEntry ->
+            val patientId = backStackEntry.arguments?.getString("patientId") ?: ""
+            withoutGlassDoc(navController = navController, patientId = patientId)
+        }
+        composable("newGlassDoc/{patientId}") { backStackEntry ->
+            val patientId = backStackEntry.arguments?.getString("patientId") ?: ""
+            newGlassDoc(navController = navController, patientId = patientId)
+        }
+
         composable("PreviewScreen/{patientId}") { backStackEntry ->
             val patientId = backStackEntry.arguments?.getString("patientId") ?: ""
             PreviewScreen(navController = navController, patientId = patientId, screenName = "")
         }
+
 
     }
 }

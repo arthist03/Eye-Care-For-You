@@ -102,7 +102,7 @@ fun PageReception(navController: NavController, authViewModel: AuthViewModel) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
             topBarId(
-                name = receptionistName,
+                fullName = receptionistName,
                 position = receptionistPosition,
                 screenName = "Patient Registration",
                 authViewModel = AuthViewModel(),

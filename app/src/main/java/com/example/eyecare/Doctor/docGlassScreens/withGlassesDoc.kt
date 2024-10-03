@@ -1,4 +1,4 @@
-package com.example.eyecare.Opto.glassScreens
+package com.example.eyecare.Doctor.docGlassScreens
 
 import android.content.Context
 import android.util.Log
@@ -32,7 +32,7 @@ import java.util.Date
 import java.util.Locale
 
 @Composable
-fun withGlassOpto(navController: NavController, patientId: String) {
+fun withGlassDoc(navController: NavController, patientId: String) {
     val db = FirebaseFirestore.getInstance()
     val context = LocalContext.current
 
@@ -148,11 +148,11 @@ fun withGlassOpto(navController: NavController, patientId: String) {
             val userDocRef = db.collection("users").document(userId)
             userDocRef.get().addOnSuccessListener { document ->
                 if (document != null && document.exists()) {
-                    optoName = document.getString("fullName") ?: "Optometrist"
-                    optoPosition = document.getString("role") ?: "Optometrist"
+                    optoName = document.getString("fullName") ?: "Doctor"
+                    optoPosition = document.getString("role") ?: "Doctor"
                 } else {
-                    optoName = "Optometrist"
-                    optoPosition = "Optometrist"
+                    optoName = "Doctor"
+                    optoPosition = "Doctor"
                 }
                 isLoading = false
             }.addOnFailureListener { exception ->
@@ -369,7 +369,7 @@ fun withGlassOpto(navController: NavController, patientId: String) {
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
                                 ElevatedButton(onClick = {
-                                    navController.navigate("OptoPatients")
+                                    navController.navigate("doctorpatients")
                                 }) {
                                     Text(text = "Back")
                                 }
@@ -394,7 +394,7 @@ fun withGlassOpto(navController: NavController, patientId: String) {
                                         context = context,
                                         screenType = "withGlassOpto"
                                     )
-                                    navController.navigate("withoutGlassOpto/${patient.id}")
+                                    navController.navigate("withoutGlassDoc/${patient.id}")
                                 }) {
                                     Text(text = "Save Examination")
                                 }

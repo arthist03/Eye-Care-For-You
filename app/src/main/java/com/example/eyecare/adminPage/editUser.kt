@@ -113,7 +113,7 @@ fun editUser(navController: NavController, authViewModel: AuthViewModel) {
                 .background(Color.LightGray)
         ) {
             topBarId(
-                name = adminName,
+                fullName = adminName,
                 position = adminPosition,
                 screenName = "Admin Page",
                 authViewModel = authViewModel, // Use passed viewModel

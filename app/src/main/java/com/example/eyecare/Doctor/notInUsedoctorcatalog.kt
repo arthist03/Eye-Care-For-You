@@ -32,7 +32,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 
 @Composable
-fun doctorcatalog(navController: NavController) {
+fun doctorcatalogm(navController: NavController) {
     val db = FirebaseFirestore.getInstance()
 
     var patients by remember { mutableStateOf(listOf<Patient>()) }
@@ -112,7 +112,7 @@ fun doctorcatalog(navController: NavController) {
     ) {
         // TopBar with Optometrist Name and Position
         topBarId(
-            name = optoName,
+            fullName = optoName,
             position = optoPosition,
             screenName = "Patient List",
             authViewModel = AuthViewModel(),
@@ -175,7 +175,7 @@ fun doctorcatalog(navController: NavController) {
 
 
 // Patient data model
-data class Patient(
+data class Patientm(
     val address: String = "",
     val age: String = "",
     val gender: String = "",
@@ -188,7 +188,7 @@ data class Patient(
 
 
 @Composable
-fun PatientCard(patient: Patient, onClick: () -> Unit) {
+fun PatientCardm(patient: Patient, onClick: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()

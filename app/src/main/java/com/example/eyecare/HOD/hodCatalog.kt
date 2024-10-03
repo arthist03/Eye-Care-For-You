@@ -112,7 +112,7 @@ fun hodcatalog(navController: NavController) {
     ) {
         // TopBar with Optometrist Name and Position
         topBarId(
-            name = optoName,
+            fullName = optoName,
             position = optoPosition,
             screenName = "Patient List",
             authViewModel = AuthViewModel(),

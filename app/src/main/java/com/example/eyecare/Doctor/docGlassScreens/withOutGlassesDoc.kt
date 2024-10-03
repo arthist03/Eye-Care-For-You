@@ -1,19 +1,14 @@
-package com.example.eyecare.Opto.glassScreens
+package com.example.eyecare.Doctor.docGlassScreens
 
-import android.content.Context
-import android.util.Log
 import android.widget.Toast
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
@@ -27,12 +22,9 @@ import com.example.eyecare.Opto.Patient
 import com.example.eyecare.topBar.topBarId
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 @Composable
-fun withGlassOpto(navController: NavController, patientId: String) {
+fun withoutGlassDoc(navController: NavController, patientId: String) {
     val db = FirebaseFirestore.getInstance()
     val context = LocalContext.current
 
@@ -57,7 +49,6 @@ fun withGlassOpto(navController: NavController, patientId: String) {
     var snellenRight by remember { mutableStateOf(6f) }
     var snellenRightN by remember { mutableStateOf(6f) }
     var isCylindricalLens by remember { mutableStateOf(false) }
-
 
     LaunchedEffect(patientId) {
         // Fetch patient details
@@ -91,7 +82,7 @@ fun withGlassOpto(navController: NavController, patientId: String) {
                                         .document(patientId)
                                         .collection("visits")
                                         .document(visitingDate)
-                                        .collection("withGlassOpto")
+                                        .collection("withoutGlassOpto")
                                         .document(visitingDate)
                                         .get()
                                         .addOnSuccessListener { examDoc ->
@@ -142,17 +133,18 @@ fun withGlassOpto(navController: NavController, patientId: String) {
             }
     }
 
+
     // Fetch optometrist details from Firestore
     LaunchedEffect(currentUserId) {
         currentUserId?.let { userId ->
             val userDocRef = db.collection("users").document(userId)
             userDocRef.get().addOnSuccessListener { document ->
                 if (document != null && document.exists()) {
-                    optoName = document.getString("fullName") ?: "Optometrist"
-                    optoPosition = document.getString("role") ?: "Optometrist"
+                    optoName = document.getString("fullName") ?: "Doctor"
+                    optoPosition = document.getString("role") ?: "Doctor"
                 } else {
-                    optoName = "Optometrist"
-                    optoPosition = "Optometrist"
+                    optoName = "Doctor"
+                    optoPosition = "Doctor"
                 }
                 isLoading = false
             }.addOnFailureListener { exception ->
@@ -170,7 +162,7 @@ fun withGlassOpto(navController: NavController, patientId: String) {
             topBarId(
                 fullName = optoName,
                 position = optoPosition,
-                screenName = "With Glasses", // Indicate screen type in top bar
+                screenName = "Without Glasses", // Indicate screen type in top bar
                 authViewModel = AuthViewModel(),
                 navController = navController
             )
@@ -206,22 +198,19 @@ fun withGlassOpto(navController: NavController, patientId: String) {
                             modifier = Modifier.padding(16.dp),
                             verticalArrangement = Arrangement.spacedBy(16.dp)
                         ) {
-                            Row (
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
+                            Row (modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween){
                                 Text(text = "Name: ${patient.name}")
                                 Text(text = "ID: ${patient.id}")
                             }
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
+                            Row(modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween) {
                                 Text(text = "Age: ${patient.age} Years")
-                                Text(text = "Date: ${patient.visitingDate ?: "N/A"}") // Display visiting date
+                                Text(text = "Date: ${patient.visitingDate}")
                             }
 
                             HorizontalDivider(thickness = 2.dp)
+
 
                             // Fields for examination details
                             Text(text = "Distance Vision")
@@ -233,9 +222,7 @@ fun withGlassOpto(navController: NavController, patientId: String) {
                                     value = leftEyeDistance,
                                     onValueChange = { leftEyeDistance = it },
                                     label = { Text("Left Eye (Spherical)") },
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .clip(RoundedCornerShape(5.dp)),
+                                    modifier = Modifier.weight(1f),
                                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                                 )
                                 Spacer(modifier = Modifier.width(16.dp))
@@ -243,9 +230,7 @@ fun withGlassOpto(navController: NavController, patientId: String) {
                                     value = rightEyeDistance,
                                     onValueChange = { rightEyeDistance = it },
                                     label = { Text("Right Eye (Spherical)") },
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .clip(RoundedCornerShape(5.dp)),
+                                    modifier = Modifier.weight(1f),
                                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                                 )
                             }
@@ -259,9 +244,7 @@ fun withGlassOpto(navController: NavController, patientId: String) {
                                     value = leftEyeNear,
                                     onValueChange = { leftEyeNear = it },
                                     label = { Text("Left Eye (Spherical)") },
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .clip(RoundedCornerShape(5.dp)),
+                                    modifier = Modifier.weight(1f),
                                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                                 )
                                 Spacer(modifier = Modifier.width(16.dp))
@@ -269,9 +252,7 @@ fun withGlassOpto(navController: NavController, patientId: String) {
                                     value = rightEyeNear,
                                     onValueChange = { rightEyeNear = it },
                                     label = { Text("Right Eye (Spherical)") },
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .clip(RoundedCornerShape(5.dp)),
+                                    modifier = Modifier.weight(1f),
                                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                                 )
                             }
@@ -361,6 +342,7 @@ fun withGlassOpto(navController: NavController, patientId: String) {
 
                             }
 
+
                             Spacer(modifier = Modifier.height(20.dp))
 
                             // Save and navigation buttons
@@ -369,13 +351,12 @@ fun withGlassOpto(navController: NavController, patientId: String) {
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
                                 ElevatedButton(onClick = {
-                                    navController.navigate("OptoPatients")
+                                    navController.navigate("withGlassDoc/${patient.id}")
                                 }) {
                                     Text(text = "Back")
                                 }
 
                                 ElevatedButton(onClick = {
-
                                     saveOptoData(
                                         patientId = patientId,
                                         name = patient.name,
@@ -392,9 +373,9 @@ fun withGlassOpto(navController: NavController, patientId: String) {
                                         snellenRightN = snellenRightN,
                                         db = db,
                                         context = context,
-                                        screenType = "withGlassOpto"
+                                        screenType = "withoutGlassOpto"
                                     )
-                                    navController.navigate("withoutGlassOpto/${patient.id}")
+                                    navController.navigate("newGlassDoc/${patient.id}")
                                 }) {
                                     Text(text = "Save Examination")
                                 }
@@ -405,29 +386,4 @@ fun withGlassOpto(navController: NavController, patientId: String) {
             }
         }
     }
-}
-fun fetchVisitingDate(
-    patientId: String,
-    visitingDate: String, // Accept the visiting date as a parameter
-    db: FirebaseFirestore,
-    onSuccess: (String) -> Unit,
-    onError: (String) -> Unit
-) {
-    db.collection("patients")
-        .document(patientId)
-        .collection("visits")
-        .document(visitingDate) // Use the passed visiting date
-        .get()
-        .addOnSuccessListener { document ->
-            if (document != null && document.exists()) {
-                // Get the visit details for the patient
-                val visitDetails = document.getString("visitingDate") ?: "Unknown Date"
-                onSuccess(visitDetails)
-            } else {
-                onError("No visit found for this date")
-            }
-        }
-        .addOnFailureListener { exception ->
-            onError("Failed to fetch visit details: ${exception.message}")
-        }
 }

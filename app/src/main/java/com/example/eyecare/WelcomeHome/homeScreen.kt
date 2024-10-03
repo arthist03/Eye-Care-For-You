@@ -30,7 +30,7 @@ import com.example.eyecare.Extra.AuthViewModel
 import com.example.eyecare.R
 
 @Composable
-fun homeScreen(navController: NavController, authViewModel: AuthViewModel) {
+fun homeScreen(navController: NavController) {
     Box(
         modifier = Modifier
             .fillMaxSize()

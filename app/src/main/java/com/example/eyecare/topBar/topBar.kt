@@ -27,7 +27,7 @@ import com.example.eyecare.Extra.AuthState
 import com.example.eyecare.Extra.AuthViewModel
 
 @Composable
-fun topBarId(name: String, position: String, screenName: String, authViewModel: AuthViewModel, navController: NavController) {
+fun topBarId(fullName: String, position: String, screenName: String, authViewModel: AuthViewModel, navController: NavController) {
     val authState = authViewModel.authState.observeAsState()
     val context = LocalContext.current
 
@@ -68,7 +68,7 @@ fun topBarId(name: String, position: String, screenName: String, authViewModel: 
                     horizontalAlignment = Alignment.Start
                 ) {
                     Text(
-                        text = name,
+                        text = fullName,
                         fontSize = 20.sp,
                         fontWeight = FontWeight.W500,
                         color = Color.Black
