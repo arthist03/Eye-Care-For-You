@@ -81,7 +81,7 @@ fun OptoPreviewScreen(navController: NavController, patientId: String) {
     Scaffold(
         topBar = {
             topBarId(
-                name = optoName,
+                fullName = optoName,
                 position = optoPosition,
                 screenName = "Preview of Examination", // Indicate screen type in top bar
                 authViewModel = AuthViewModel(),
