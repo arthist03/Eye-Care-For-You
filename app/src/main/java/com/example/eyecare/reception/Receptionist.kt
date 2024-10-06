@@ -1,5 +1,6 @@
 package com.example.eyecare.reception
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -20,17 +21,77 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.eyecare.Extra.AuthViewModel
 import com.example.eyecare.topBar.topBarId
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 
 @Composable
 fun PageReception(navController: NavController, authViewModel: AuthViewModel) {
     val context = LocalContext.current
     var searchQuery by remember { mutableStateOf("") }
     var searchResults by remember { mutableStateOf<List<Map<String, Any>>>(emptyList()) }
+    val db = FirebaseFirestore.getInstance()
 
-    // Perform search and handle auth state
+    var receptionistName by remember { mutableStateOf("Loading...") }
+    var receptionistPosition by remember { mutableStateOf("Loading...") }
+
+    val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
+
+    LaunchedEffect(currentUserId) {
+        currentUserId?.let { userId ->
+            val userDocRef = db.collection("users").document(userId)
+            userDocRef.get().addOnSuccessListener { document ->
+                if (document.exists()) {
+                    receptionistName = document.getString("fullName") ?: "Receptionist"
+                    receptionistPosition = document.getString("position") ?: "Receptionist"
+                }
+            }.addOnFailureListener {
+                receptionistName = "Receptionist"
+                receptionistPosition = "Receptionist"
+            }
+        }
+    }
+
     fun performSearch(query: String) {
         if (query.isNotBlank()) {
-            // Database search logic
+            // Perform search on multiple fields: name, phone, and id
+            db.collection("patients")
+                .whereGreaterThanOrEqualTo("name", query)
+                .whereLessThanOrEqualTo("name", query + "\uf8ff")
+                .get()
+                .addOnSuccessListener { documents ->
+                    // Filter results locally to include searches by phone and ID
+                    val nameResults = documents.map { it.data }
+
+                    // Perform additional search on phone
+                    db.collection("patients")
+                        .whereGreaterThanOrEqualTo("phone", query)
+                        .whereLessThanOrEqualTo("phone", query + "\uf8ff")
+                        .get()
+                        .addOnSuccessListener { phoneDocuments ->
+                            val phoneResults = phoneDocuments.map { it.data }
+
+                            // Perform additional search on ID
+                            db.collection("patients")
+                                .whereGreaterThanOrEqualTo("id", query)
+                                .whereLessThanOrEqualTo("id", query + "\uf8ff")
+                                .get()
+                                .addOnSuccessListener { idDocuments ->
+                                    val idResults = idDocuments.map { it.data }
+
+                                    // Combine all search results and remove duplicates by patient ID
+                                    searchResults = (nameResults + phoneResults + idResults).distinctBy { it["id"] }
+                                }
+                                .addOnFailureListener {
+                                    Toast.makeText(context, "Search by ID failed", Toast.LENGTH_SHORT).show()
+                                }
+                        }
+                        .addOnFailureListener {
+                            Toast.makeText(context, "Search by phone failed", Toast.LENGTH_SHORT).show()
+                        }
+                }
+                .addOnFailureListener {
+                    Toast.makeText(context, "Search by name failed", Toast.LENGTH_SHORT).show()
+                }
         }
     }
 
@@ -40,14 +101,14 @@ fun PageReception(navController: NavController, authViewModel: AuthViewModel) {
             .background(Brush.verticalGradient(listOf(Color(0xFFEBF5FB), Color(0xFFB3BBC4)))),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Top bar placement
-        topBarId(
-            name = "Receptionist",
-            position = "Reception",
-            screenName = "Reception Screen",
-            authViewModel,
-            navController
-        )
+            topBarId(
+                fullName = receptionistName,
+                position = receptionistPosition,
+                screenName = "Patient Registration",
+                authViewModel = AuthViewModel(),
+                navController = navController
+            )
+
 
         Column(
             modifier = Modifier.fillMaxSize()
@@ -104,10 +165,9 @@ fun PageReception(navController: NavController, authViewModel: AuthViewModel) {
 
                     Spacer(modifier = Modifier.height(20.dp))
 
-                    // Search results list
                     LazyColumn {
                         items(searchResults) { result ->
-                            val patientId = result["id"] as? String ?: ""
+                            val id = result["id"] as? String ?: ""
                             val patientName = result["name"] as? String ?: ""
 
                             Card(
@@ -115,9 +175,13 @@ fun PageReception(navController: NavController, authViewModel: AuthViewModel) {
                                     .fillMaxWidth()
                                     .padding(8.dp)
                                     .clickable {
-                                        navController.navigate("patientDetails/${patientId}")
+                                        if (id.isNotEmpty()) {
+                                            navController.navigate("patientDetails/$id")
+                                        } else {
+                                            Toast.makeText(context, "Invalid Patient ID", Toast.LENGTH_SHORT).show()
+                                        }
                                     },
-                                elevation = CardDefaults.elevatedCardElevation(8.dp) // Updated elevation
+                                elevation = CardDefaults.elevatedCardElevation(8.dp)
                             ) {
                                 Column(
                                     modifier = Modifier
@@ -125,13 +189,13 @@ fun PageReception(navController: NavController, authViewModel: AuthViewModel) {
                                 ) {
                                     Text(text = "Name: $patientName", fontSize = 16.sp)
                                     Text(text = "Phone: ${result["phone"]}", fontSize = 16.sp)
-                                    Text(text = "ID: $patientId", fontSize = 16.sp)
+                                    Text(text = "ID: $id", fontSize = 16.sp)
                                 }
                             }
-
-
                         }
                     }
+
+
 
 
 

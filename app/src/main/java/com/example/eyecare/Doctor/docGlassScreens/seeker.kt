@@ -1,4 +1,4 @@
-package com.example.eyecare.Opto.glassScreens
+package com.example.eyecare.Doctor.docGlassScreens
 
 import android.graphics.Paint
 import androidx.compose.foundation.Canvas

@@ -27,7 +27,7 @@ import com.example.eyecare.Extra.AuthState
 import com.example.eyecare.Extra.AuthViewModel
 
 @Composable
-fun topBarId(name: String, position: String, screenName: String, authViewModel: AuthViewModel, navController: NavController) {
+fun topBarId(fullName: String, position: String, screenName: String, authViewModel: AuthViewModel, navController: NavController) {
     val authState = authViewModel.authState.observeAsState()
     val context = LocalContext.current
 
@@ -50,38 +50,42 @@ fun topBarId(name: String, position: String, screenName: String, authViewModel: 
                     shape = RoundedCornerShape(bottomStart = 45.dp, bottomEnd = 45.dp),
                 )
                 .padding(15.dp)
-                .height(130.dp), // Adjusted height
-            verticalAlignment = Alignment.CenterVertically
+                .height(80.dp), // Adjusted height
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Icon(
-                imageVector = Icons.Default.AccountCircle,
-                contentDescription = "Pic",
-                modifier = Modifier.size(70.dp)
-            )
-            Spacer(modifier = Modifier.size(25.dp))
+            Row {
+                Icon(
+                    imageVector = Icons.Default.AccountCircle,
+                    contentDescription = "Pic",
+                    modifier = Modifier.size(70.dp)
+                )
+                Spacer(modifier = Modifier.size(25.dp))
 
-            Column(
-                modifier = Modifier.fillMaxHeight(),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.Start
-            ) {
-                Text(
-                    text = name,
-                    fontSize = 25.sp,
-                    fontWeight = FontWeight.W500,
-                    color = Color.Black
-                )
-                Spacer(modifier = Modifier.size(4.dp))
-                Text(
-                    text = position,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.W300,
-                    color = Color.Black
-                )
+                Column(
+                    modifier = Modifier.fillMaxHeight(),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.Start
+                ) {
+                    Text(
+                        text = fullName,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.W500,
+                        color = Color.Black
+                    )
+                    Spacer(modifier = Modifier.size(4.dp))
+                    Text(
+                        text = position,
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.W300,
+                        color = Color.Black
+                    )
+                }
             }
-            Spacer(modifier = Modifier.width(60.dp))
+            Spacer(modifier = Modifier.width(20.dp))
+
             TextButton(onClick = { authViewModel.signout() }) {
-                Text(text = "Sign out", color = Color.Black, textAlign = TextAlign.End)
+                Text(text = "Sign out", color = Color.Black)
             }
         }
         screenName(screenName = screenName)

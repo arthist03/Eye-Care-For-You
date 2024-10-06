@@ -67,7 +67,7 @@ fun PreviewScreen(navController: NavController, patientId: String, screenName: S
     Scaffold(
         topBar = {
             topBarId(
-                name = "Optometrist",
+                fullName = "Optometrist",
                 position = "Optometrist",
                 screenName = screenName, // Display screen name in the top bar
                 authViewModel = AuthViewModel(),

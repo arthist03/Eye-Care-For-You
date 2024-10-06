@@ -1,4 +1,4 @@
-package com.example.eyecare.Opto
+package com.example.eyecare.Doctor
 
 import android.annotation.SuppressLint
 import android.app.DatePickerDialog
@@ -36,15 +36,22 @@ import java.util.Locale
 import androidx.compose.ui.platform.LocalContext
 
 @Composable
-fun PatientCatalogPage(navController: NavController) {
+fun doctorcatalog(navController: NavController) {
     val db = FirebaseFirestore.getInstance()
 
     var patients by remember { mutableStateOf(listOf<Patient>()) }
     var filteredPatients by remember { mutableStateOf(listOf<Patient>()) }
     var searchQuery by remember { mutableStateOf("") }
-    var selectedDate by remember { mutableStateOf(SimpleDateFormat("dd_MM_yyyy", Locale.getDefault()).format(Date())) }
-    var optoName by remember { mutableStateOf("Loading...") }
-    var optoPosition by remember { mutableStateOf("Loading...") }
+    var selectedDate by remember {
+        mutableStateOf(
+            SimpleDateFormat(
+                "dd_MM_yyyy",
+                Locale.getDefault()
+            ).format(Date())
+        )
+    }
+    var docName by remember { mutableStateOf("Loading...") }
+    var docPosition by remember { mutableStateOf("Loading...") }
     var isLoading by remember { mutableStateOf(true) }
     var errorMessage by remember { mutableStateOf("") }
 
@@ -57,11 +64,11 @@ fun PatientCatalogPage(navController: NavController) {
             val userDocRef = db.collection("users").document(userId)
             userDocRef.get().addOnSuccessListener { document ->
                 if (document != null && document.exists()) {
-                    optoName = document.getString("fullName") ?: "Optometrist"
-                    optoPosition = document.getString("role") ?: "Optometrist"
+                    docName = document.getString("fullName") ?: "Doctor"
+                    docPosition = document.getString("role") ?: "Doctor"
                 } else {
-                    optoName = "Optometrist"
-                    optoPosition = "Optometrist"
+                    docName = "Doctor"
+                    docPosition = "Doctor"
                 }
                 isLoading = false
             }.addOnFailureListener { exception ->
@@ -87,20 +94,24 @@ fun PatientCatalogPage(navController: NavController) {
                     return@addSnapshotListener
                 }
 
-                val fetchedPatients = snapshot?.data?.filterKeys { it != "assignedPatients" }?.mapNotNull { (key, value) ->
-                    value as? Map<String, Any>? // Ensure the value is a map
-                }?.map { patientData ->
-                    Patient(
-                        id = patientData["id"] as? String ?: "",
-                        name = patientData["name"] as? String ?: "",
-                        age = patientData["age"] as? String ?: "",
-                        gender = patientData["gender"] as? String ?: "",
-                        address = patientData["address"] as? String ?: "",
-                        phone = patientData["phone"] as? String ?: "",
-                        imageUri = patientData["imageUri"] as? String,
-                        visitingDate = selectedDate.replace("_", "/")  // Store as dd/MM/yyyy for display
-                    )
-                } ?: emptyList()
+                val fetchedPatients = snapshot?.data?.filterKeys { it != "AssignedPatients" }
+                    ?.mapNotNull { (key, value) ->
+                        value as? Map<String, Any>? // Ensure the value is a map
+                    }?.map { patientData ->
+                        Patient(
+                            id = patientData["id"] as? String ?: "",
+                            name = patientData["name"] as? String ?: "",
+                            age = patientData["age"] as? String ?: "",
+                            gender = patientData["gender"] as? String ?: "",
+                            address = patientData["address"] as? String ?: "",
+                            phone = patientData["phone"] as? String ?: "",
+                            imageUri = patientData["imageUri"] as? String,
+                            visitingDate = selectedDate.replace(
+                                "_",
+                                "/"
+                            )  // Store as dd/MM/yyyy for display
+                        )
+                    } ?: emptyList()
 
                 patients = fetchedPatients
                 filteredPatients = fetchedPatients // Update filtered patients
@@ -116,7 +127,10 @@ fun PatientCatalogPage(navController: NavController) {
     LaunchedEffect(searchQuery, selectedDate) {
         filteredPatients = patients.filter { patient ->
             (searchQuery.isEmpty() || patient.name.startsWith(searchQuery, ignoreCase = true)) &&
-                    patient.visitingDate == selectedDate.replace("_", "/")  // Ensure the patient is from the selected date
+                    patient.visitingDate == selectedDate.replace(
+                "_",
+                "/"
+            )  // Ensure the patient is from the selected date
         }
     }
 
@@ -145,8 +159,8 @@ fun PatientCatalogPage(navController: NavController) {
     ) {
         // TopBar with Optometrist Name and Position
         topBarId(
-            fullName = optoName,
-            position = optoPosition,
+            fullName = docName,
+            position = docPosition,
             screenName = "Patient List",
             authViewModel = AuthViewModel(),
             navController = navController
@@ -209,7 +223,7 @@ fun PatientCatalogPage(navController: NavController) {
                 items(filteredPatients) { patient ->
                     PatientCard(patient = patient) {
                         // Navigate to patient details page with patient ID
-                        navController.navigate("withGlassOpto/${patient.id}")
+                        navController.navigate("withGlassDoc/${patient.id}")
                     }
                 }
             }

@@ -42,18 +42,18 @@ fun screenName(screenName: String) {
 
         ){
             Column(
-            modifier = Modifier.fillMaxSize()
-                .background(color = Color(0xFF37B0D5)),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text = screenName,
-                fontSize = 25.sp,
-                fontWeight = FontWeight.W400,
-                color = Color.Black
-            )
-        }
+                modifier = Modifier.fillMaxSize()
+                    .background(color = Color(0xFF37B0D5)),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = screenName,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.W400,
+                    color = Color.Black
+                )
+            }
         }
     }
 }

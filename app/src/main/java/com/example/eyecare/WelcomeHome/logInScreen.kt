@@ -53,14 +53,6 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel) {
 
     // Color Animation
     val infiniteTransition = rememberInfiniteTransition()
-    val textColor by infiniteTransition.animateColor(
-        initialValue = Color.Black,
-        targetValue = Color.White,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 4000, easing = LinearEasing),
-            repeatMode = RepeatMode.Reverse
-        )
-    )
 
     // Font Family Animation
     val fontFamilies = listOf(
@@ -125,7 +117,7 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel) {
 
             is AuthState.RedirectToDoctor -> {
                 Toast.makeText(context, "Redirecting to Doctor Screen", Toast.LENGTH_SHORT).show()
-                navController.navigate("doctorScreen") {
+                navController.navigate("doctorpatients") {
                     popUpTo("login") { inclusive = true }
                 }
             }
@@ -133,7 +125,7 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel) {
             is AuthState.RedirectToOptometrist -> {
                 Toast.makeText(context, "Redirecting to Optometrist Screen", Toast.LENGTH_SHORT)
                     .show()
-                navController.navigate("optometristScreen") {
+                navController.navigate("OptoPatients") {
                     popUpTo("login") { inclusive = true }
                 }
             }
@@ -142,6 +134,14 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel) {
                 Toast.makeText(context, "Redirecting to Receptionist Screen", Toast.LENGTH_SHORT)
                     .show()
                 navController.navigate("receptionistScreen") {
+                    popUpTo("login") { inclusive = true }
+                }
+            }
+
+            is AuthState.RedirectToAdmin -> {
+                Toast.makeText(context, "Redirecting to Admin Screen", Toast.LENGTH_SHORT)
+                    .show()
+                navController.navigate("adminPage") {
                     popUpTo("login") { inclusive = true }
                 }
             }
@@ -308,17 +308,6 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel) {
                             fontWeight = FontWeight.Bold,
                             fontSize = 20.sp
                         )
-                    }
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    Row {
-                        Text(text = "Don't have an account? ", color = Color.White)
-                        Text(
-                            text = "SignUp",
-                            color = textColor,
-                            textDecoration = TextDecoration.Underline,
-                            modifier = Modifier.clickable { navController.navigate("signup") })
                     }
                 }
             }
