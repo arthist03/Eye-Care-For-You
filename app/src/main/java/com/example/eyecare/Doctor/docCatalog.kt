@@ -2,7 +2,6 @@ package com.example.eyecare.Doctor
 
 import android.annotation.SuppressLint
 import android.app.DatePickerDialog
-import android.util.Log
 import android.widget.DatePicker
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -28,7 +27,6 @@ import com.example.eyecare.Extra.LoadingAnimation
 import com.example.eyecare.topBar.topBarId
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.ListenerRegistration
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -81,7 +79,7 @@ fun doctorcatalog(navController: NavController) {
         }
     }
 
-    // Fetch assigned patients from Firestore
+
     DisposableEffect(selectedDate) {
         val firestoreRegistration = db.collection("users")
             .document(currentUserId ?: "")
@@ -96,7 +94,7 @@ fun doctorcatalog(navController: NavController) {
 
                 val fetchedPatients = snapshot?.data?.filterKeys { it != "AssignedPatients" }
                     ?.mapNotNull { (key, value) ->
-                        value as? Map<String, Any>? // Ensure the value is a map
+                        value as? Map<*, *>? // Ensure the value is a map
                     }?.map { patientData ->
                         Patient(
                             id = patientData["id"] as? String ?: "",
@@ -265,7 +263,7 @@ fun PatientCard(patient: Patient, onClick: () -> Unit) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(text = "Name: ${patient.name}")
                 Text(text = "Age: ${patient.age} years")
-                Text(text = "Gender: ${patient.gender}")
+                Text(text = "Gender: ${patient.visitingDate}")
                 Text(text = "Id: ${patient.id}")
                 Text(text = "Phone: ${patient.phone}")
             }

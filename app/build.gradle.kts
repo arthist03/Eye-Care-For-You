@@ -73,7 +73,7 @@ dependencies {
     implementation(libs.places)
     implementation (libs.coil.compose)
     implementation(libs.androidx.glance)
-    implementation("androidx.compose.material:material-icons-extended")
+    implementation(libs.androidx.material.icons.extended)
     implementation(libs.firebase.crashlytics.buildtools)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
@@ -82,4 +82,10 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+    dependencies {
+        implementation("org.bouncycastle:bcprov-jdk18on:1.78.1") {
+            exclude(group = "org.bouncycastle", module = "bcprov-jdk15on")
+        }
+    }
+
 }
