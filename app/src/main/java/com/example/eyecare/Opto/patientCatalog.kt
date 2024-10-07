@@ -251,7 +251,7 @@ fun PatientCard(patient: Patient, onClick: () -> Unit) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(text = "Name: ${patient.name}")
                 Text(text = "Age: ${patient.age} years")
-                Text(text = "Gender: ${patient.gender}")
+                Text(text = "Gender: ${patient.visitingDate}")
                 Text(text = "Id: ${patient.id}")
                 Text(text = "Phone: ${patient.phone}")
             }

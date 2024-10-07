@@ -12,3 +12,5 @@ val Pink40 = Color(0xFF7D5260)
 
 val Sunkissed = Color(0xFFB6973D)
 val bhuro = Color(0xFF3DB69E)
+val BLACK = 0xFF000000.toInt()
+val Grayy = 0xFFFCFCFC.toInt()
