@@ -10,13 +10,14 @@ import com.example.eyecare.Doctor.docGlassScreens.withoutGlassDoc
 import com.example.eyecare.Doctor.doctorcatalog
 import com.example.eyecare.HOD.hodcatalog
 import com.example.eyecare.Opto.PatientCatalogPage
-import com.example.eyecare.Opto.PreviewScreen
+import com.example.eyecare.Opto.glassScreens.OptoCheckupScreen
 import com.example.eyecare.Opto.glassScreens.newGlassOpto
 import com.example.eyecare.Opto.glassScreens.withGlassOpto
 import com.example.eyecare.Opto.glassScreens.withoutGlassOpto
 import com.example.eyecare.Trail.pageDoctors
 import com.example.eyecare.Trail.pageHOD
 import com.example.eyecare.Opto.pageOpto
+import com.example.eyecare.Opto.PreviewScreen
 import com.example.eyecare.reception.PageReception
 import com.example.eyecare.WelcomeHome.LoginScreen
 import com.example.eyecare.WelcomeHome.homeScreen
@@ -66,6 +67,12 @@ fun AppNavHost(authViewModel: AuthViewModel) {
             val patientId = backStackEntry.arguments?.getString("patientId") ?: ""
             newGlassOpto(navController = navController, patientId = patientId)
         }
+        composable("OptoCheckupScreen/{patientId}") { backStackEntry ->
+            val name = backStackEntry.arguments?.getString("name") ?: ""
+            val patientId = backStackEntry.arguments?.getString("patientId") ?: ""
+            val visitDate = backStackEntry.arguments?.getString("visitingDate") ?: ""
+            OptoCheckupScreen(navController = navController, patientId = patientId)
+        }
 
         composable("withGlassDoc/{patientId}") { backStackEntry ->
             val patientId = backStackEntry.arguments?.getString("patientId") ?: ""
@@ -80,10 +87,8 @@ fun AppNavHost(authViewModel: AuthViewModel) {
             newGlassDoc(navController = navController, patientId = patientId)
         }
 
-        composable("PreviewScreen/{patientId}") { backStackEntry ->
-            val patientId = backStackEntry.arguments?.getString("patientId") ?: ""
-            PreviewScreen(navController = navController, patientId = patientId, screenName = "")
-        }
+
+
 
 
     }
