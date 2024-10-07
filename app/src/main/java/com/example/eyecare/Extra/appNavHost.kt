@@ -74,7 +74,7 @@ fun AppNavHost(authViewModel: AuthViewModel) {
             val name = backStackEntry.arguments?.getString("name") ?: ""
             val patientId = backStackEntry.arguments?.getString("patientId") ?: ""
             val visitDate = backStackEntry.arguments?.getString("visitingDate") ?: ""
-            OptoCheckupScreen(navController = navController, patientId = patientId)
+            OptoCheckupScreen(navController = navController)
         }
 
         composable("withGlassDoc/{patientId}") { backStackEntry ->

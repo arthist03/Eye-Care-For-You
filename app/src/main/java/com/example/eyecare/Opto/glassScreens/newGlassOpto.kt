@@ -386,7 +386,7 @@ fun newGlassOpto(navController: NavController, patientId: String) {
                                             context = context,
                                             screenType = "newGlassOpto"
                                         )
-                                        navController.navigate("OptoCheckupScreen/$id")
+                                        navController.navigate("OptoCheckupScreen/patientId")
 
                                     }) {
                                         Text(text = "Save Examination")

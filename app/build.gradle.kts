@@ -80,11 +80,8 @@ dependencies {
     implementation(libs.places)
     implementation (libs.coil.compose)
     implementation(libs.androidx.glance)
-<<<<<<< HEAD
     implementation(libs.material.icons.extended)
-=======
     implementation(libs.androidx.material.icons.extended)
->>>>>>> 492fd1fa0f0228541044b8a29619753f76d70401
     implementation(libs.firebase.crashlytics.buildtools)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
