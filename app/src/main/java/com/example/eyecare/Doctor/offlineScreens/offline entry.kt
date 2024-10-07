@@ -1186,46 +1186,46 @@ fun offlinScreen(navController: NavController) {
                                 dateOfBirth = dateOfBirth,
                                 dateOfVisit = dateOfVisit,
                                 withoutGlasses = mapOf(
-                                    "Distance Vision Right Sphere" to DVRS,
-                                    "Distance Vision Right Cylinder" to DVRC,
-                                    "Distance Vision Left Sphere" to DVLS,
-                                    "Distance Vision Left Cylinder" to DVLC,
-                                    "Distance Vision Right Cylinder Axis" to DVRCA,
-                                    "Distance Vision Left Cylinder Axis" to DVLCA,
-                                    "Near Vision Right Sphere" to NVRS,
-                                    "Near Vision Right CYlinder" to NVRC,
-                                    "Near Vision Left Sphere" to NVLS,
-                                    "Near Vision Left Cylinder" to NVLC,
-                                    "Near Vision Right Cylinder Axis" to NVRCA,
-                                    "Near Vision Left Cylinder Axis" to NVLCA
+                                    "Distance Vision Sphere Right" to DVRS,
+                                    "Distance Vision Cylinder Right" to DVRC,
+                                    "Distance Vision Sphere Left" to DVLS,
+                                    "Distance Vision Cylinder Left" to DVLC,
+                                    "Distance Vision Cylinder Axis Right" to DVRCA,
+                                    "Distance Vision Cylinder Axis Left" to DVLCA,
+                                    "Near Vision Sphere Right" to NVRS,
+                                    "Near Vision Cylinder Right" to NVRC,
+                                    "Near Vision Sphere Left" to NVLS,
+                                    "Near Vision Cylinder Left" to NVLC,
+                                    "Near Vision Cylinder Axis Right" to NVRCA,
+                                    "Near Vision Cylinder Axis Left" to NVLCA
                                 ),
                                 withGlasses = mapOf(
-                                    "Distance Vision Right Sphere" to DVRSW,
-                                    "Distance Vision Right Cylinder" to DVRCW,
-                                    "Distance Vision Left Sphere" to DVLSW,
-                                    "Distance Vision Left Cylinder" to DVLCW,
-                                    "Distance Vision Right Cylinder Axis" to DVRCAW,
-                                    "Distance Vision Left Cylinder Axis" to DVLCA,
-                                    "Near Vision Right Sphere" to NVRSW,
-                                    "Near Vision Right CYlinder" to NVRCW,
-                                    "Near Vision Left Sphere" to NVLSW,
-                                    "Near Vision Left Cylinder" to NVLCW,
-                                    "Near Vision Right Cylinder Axis" to NVRCAW,
-                                    "Near Vision Left Cylinder Axis" to NVLCAW
+                                    "Distance Vision Sphere Right" to DVRSW,
+                                    "Distance Vision Cylinder Right" to DVRCW,
+                                    "Distance Vision Sphere Left" to DVLSW,
+                                    "Distance Vision Cylinder Left" to DVLCW,
+                                    "Distance Vision Cylinder Axis Right" to DVRCAW,
+                                    "Distance Vision Cylinder Axis Left" to DVLCAW,
+                                    "Near Vision Sphere Right" to NVRSW,
+                                    "Near Vision Cylinder Right" to NVRCW,
+                                    "Near Vision Sphere Left" to NVLSW,
+                                    "Near Vision Cylinder Left" to NVLCW,
+                                    "Near Vision Cylinder Axis Right" to NVRCAW,
+                                    "Near Vision Cylinder Axis Left" to NVLCAW
                                 ),
                                 newGlassPrescription = mapOf(
-                                    "Distance Vision Right Sphere" to DVRSN,
-                                    "Distance Vision Right Cylinder" to DVRCN,
-                                    "Distance Vision Left Sphere" to DVLSN,
-                                    "Distance Vision Left Cylinder" to DVLCN,
-                                    "Distance Vision Right Cylinder Axis" to DVRCAN,
-                                    "Distance Vision Left Cylinder Axis" to DVLCAN,
-                                    "Near Vision Right Sphere" to NVRSN,
-                                    "Near Vision Right CYlinder" to NVRCN,
-                                    "Near Vision Left Sphere" to NVLSN,
-                                    "Near Vision Left Cylinder" to NVLCN,
-                                    "Near Vision Right Cylinder Axis" to NVRCAN,
-                                    "Near Vision Left Cylinder Axis" to NVLCAN,
+                                    "Distance Vision Sphere Right" to DVRSN,
+                                    "Distance Vision Cylinder Right" to DVRCN,
+                                    "Distance Vision Sphere Left" to DVLSN,
+                                    "Distance Vision Cylinder Left" to DVLCN,
+                                    "Distance Vision Cylinder Axis Right" to DVRCAN,
+                                    "Distance Vision Cylinder Axis Left" to DVLCAN,
+                                    "Near Vision Sphere Right" to NVRSN,
+                                    "Near Vision Cylinder Right" to NVRCN,
+                                    "Near Vision Sphere Left" to NVLSN,
+                                    "Near Vision Cylinder Left" to NVLCN,
+                                    "Near Vision Cylinder Axis Right" to NVRCAN,
+                                    "Near Vision Cylinder Axis Left" to NVLCAN,
                                     "Interpupillary distance" to IPD
                                 )
                             )
@@ -1408,12 +1408,12 @@ fun exportToPDF(data: PatientData, context: Context) {
 
     // Patient Details section (no box around this section)
     canvas.drawText("Doctor: ${data.docName}", 10f, yPos, paint)
-    yPos += 20f
-    canvas.drawText("Name: ${data.name}", 10f, yPos, paint)
+    yPos += 0f
+    canvas.drawText("Name: ${data.name}", pageWidth / 3f, yPos, paint)
     yPos += 20f
     canvas.drawText("Phone: ${data.phone}", 10f, yPos, paint)
-    yPos += 20f
-    canvas.drawText("Aadhar: ${data.aadhar}", 10f, yPos, paint)
+    yPos += 0f
+    canvas.drawText("Aadhar: ${data.aadhar}", pageWidth / 3f, yPos, paint)
     yPos += 20f
     canvas.drawText(
         "Date of Birth: ${data.dateOfBirth?.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) ?: "Not Selected"}",
@@ -1421,10 +1421,10 @@ fun exportToPDF(data: PatientData, context: Context) {
         yPos,
         paint
     )
-    yPos += 20f
+    yPos += 0f
     canvas.drawText(
         "Date of Visit: ${data.dateOfVisit.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))}",
-        10f,
+        pageWidth / 3f,
         yPos,
         paint
     )
@@ -1460,7 +1460,7 @@ fun exportToPDF(data: PatientData, context: Context) {
     pdfDocument.finishPage(page)
 
     // Save the PDF to a file
-    val filePath = context.getExternalFilesDir(null)?.absolutePath + "/${data.name}.pdf"
+    val filePath = context.getExternalFilesDir(null)?.absolutePath + "/${data.name}  consulted by ${data.docName}.pdf"
     val file = File(filePath)
     try {
         pdfDocument.writeTo(FileOutputStream(file))
