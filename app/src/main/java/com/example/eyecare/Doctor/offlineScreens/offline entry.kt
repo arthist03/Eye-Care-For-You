@@ -7,11 +7,10 @@ import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.pdf.PdfDocument
-import android.os.Environment
+import android.util.Log
 import android.widget.DatePicker
 import android.widget.Toast
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -20,7 +19,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.captionBar
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -33,7 +31,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBackIos
+import androidx.compose.material.icons.automirrored.filled.ArrowBackIos
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -41,6 +39,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ElevatedButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -65,9 +64,12 @@ import java.time.format.DateTimeFormatter
 import java.util.Calendar
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.navigation.NavController
+import com.example.eyecare.ui.theme.BLACK
+import com.example.eyecare.ui.theme.Grayy
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
+
 
 @Composable
 fun offlinScreen(navController: NavController) {
@@ -179,7 +181,7 @@ fun offlinScreen(navController: NavController) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
-                imageVector = Icons.Default.ArrowBackIos,
+                imageVector = Icons.AutoMirrored.Filled.ArrowBackIos,
                 contentDescription = "Arrow for back",
                 tint = Color.Black,
                 modifier = Modifier
@@ -285,7 +287,10 @@ fun offlinScreen(navController: NavController) {
             }
 
             item {
-                Divider(modifier = Modifier.fillMaxWidth().height(2.dp), color = Color.Black)
+                HorizontalDivider(
+                    modifier = Modifier.fillMaxWidth().height(2.dp),
+                    color = Color.Black
+                )
             }
 
 
@@ -431,7 +436,7 @@ fun offlinScreen(navController: NavController) {
                     Spacer(modifier = Modifier.height(10.dp))
                     Row {
 
-                        Divider(
+                        HorizontalDivider(
                             modifier = Modifier.fillMaxWidth().height(1.dp),
                             color = Color.Black
                         )
@@ -737,7 +742,7 @@ fun offlinScreen(navController: NavController) {
                         Spacer(modifier = Modifier.height(10.dp))
                         Row {
 
-                            Divider(
+                            HorizontalDivider(
                                 modifier = Modifier.fillMaxWidth().height(1.dp),
                                 color = Color.Black
                             )
@@ -1008,7 +1013,7 @@ fun offlinScreen(navController: NavController) {
                     Spacer(modifier = Modifier.height(10.dp))
                     Row {
 
-                        Divider(
+                        HorizontalDivider(
                             modifier = Modifier.fillMaxWidth().height(1.dp),
                             color = Color.Black
                         )
@@ -1251,57 +1256,57 @@ fun offlinScreen(navController: NavController) {
                                     Text("Without Glasses Observations:")
                                     // Iterate through the without glasses data
                                     val withoutGlasses = mapOf(
-                                        "Distance Vision Right Sphere" to DVRS,
-                                        "Distance Vision Right Cylinder" to DVRC,
-                                        "Distance Vision Left Sphere" to DVLS,
-                                        "Distance Vision Left Cylinder" to DVLC,
-                                        "Distance Vision Right Cylinder Axis" to DVRCA,
-                                        "Distance Vision Left Cylinder Axis" to DVLCA,
-                                        "Near Vision Right Sphere" to NVRS,
-                                        "Near Vision Right CYlinder" to NVRC,
-                                        "Near Vision Left Sphere" to NVLS,
-                                        "Near Vision Left Cylinder" to NVLC,
-                                        "Near Vision Right Cylinder Axis" to NVRCA,
-                                        "Near Vision Left Cylinder Axis" to NVLCA
+                                        "Distance Vision Sphere Right" to DVRS,
+                                        "Distance Vision Cylinder Right" to DVRC,
+                                        "Distance Vision Sphere Left" to DVLS,
+                                        "Distance Vision Cylinder Left" to DVLC,
+                                        "Distance Vision Cylinder Axis Right" to DVRCA,
+                                        "Distance Vision Cylinder Axis Left" to DVLCA,
+                                        "Near Vision Sphere Right" to NVRS,
+                                        "Near Vision Cylinder Right" to NVRC,
+                                        "Near Vision Sphere Left" to NVLS,
+                                        "Near Vision Cylinder Left" to NVLC,
+                                        "Near Vision Cylinder Axis Right" to NVRCA,
+                                        "Near Vision Cylinder Axis Left" to NVLCA
                                     )
                                     withoutGlasses.forEach { (key, value) ->
                                         Text("$key: $value")
                                     }
-                                    Divider(modifier = Modifier.fillMaxWidth().height(1.dp))
+                                    HorizontalDivider(modifier = Modifier.fillMaxWidth().height(1.dp))
 
                                     val withGlasses = mapOf(
-                                        "Distance Vision Right Sphere" to DVRSW,
-                                        "Distance Vision Right Cylinder" to DVRCW,
-                                        "Distance Vision Left Sphere" to DVLSW,
-                                        "Distance Vision Left Cylinder" to DVLCW,
-                                        "Distance Vision Right Cylinder Axis" to DVRCAW,
-                                        "Distance Vision Left Cylinder Axis" to DVLCA,
-                                        "Near Vision Right Sphere" to NVRSW,
-                                        "Near Vision Right CYlinder" to NVRCW,
-                                        "Near Vision Left Sphere" to NVLSW,
-                                        "Near Vision Left Cylinder" to NVLCW,
-                                        "Near Vision Right Cylinder Axis" to NVRCAW,
-                                        "Near Vision Left Cylinder Axis" to NVLCAW
+                                        "Distance Vision Sphere Right" to DVRSW,
+                                        "Distance Vision Cylinder Right" to DVRCW,
+                                        "Distance Vision Sphere Left" to DVLSW,
+                                        "Distance Vision Cylinder Left" to DVLCW,
+                                        "Distance Vision Cylinder Axis Right" to DVRCAW,
+                                        "Distance Vision Cylinder Axis Left" to DVLCAW,
+                                        "Near Vision Sphere Right" to NVRSW,
+                                        "Near Vision Cylinder Right" to NVRCW,
+                                        "Near Vision Sphere Left" to NVLSW,
+                                        "Near Vision Cylinder Left" to NVLCW,
+                                        "Near Vision Cylinder Axis Right" to NVRCAW,
+                                        "Near Vision Cylinder Axis Left" to NVLCAW
                                     )
                                     withGlasses.forEach { (key, value) ->
                                         Text("$key: $value")
                                     }
 
-                                    Divider(modifier = Modifier.fillMaxWidth().height(1.dp))
+                                    HorizontalDivider(modifier = Modifier.fillMaxWidth().height(1.dp))
 
                                     val newGlassPrescription = mapOf(
-                                        "Distance Vision Right Sphere" to DVRSN,
-                                        "Distance Vision Right Cylinder" to DVRCN,
-                                        "Distance Vision Left Sphere" to DVLSN,
-                                        "Distance Vision Left Cylinder" to DVLCN,
-                                        "Distance Vision Right Cylinder Axis" to DVRCAN,
-                                        "Distance Vision Left Cylinder Axis" to DVLCAN,
-                                        "Near Vision Right Sphere" to NVRSN,
-                                        "Near Vision Right CYlinder" to NVRCN,
-                                        "Near Vision Left Sphere" to NVLSN,
-                                        "Near Vision Left Cylinder" to NVLCN,
-                                        "Near Vision Right Cylinder Axis" to NVRCAN,
-                                        "Near Vision Left Cylinder Axis" to NVLCAN,
+                                        "Distance Vision Sphere Right" to DVRSN,
+                                        "Distance Vision Cylinder Right" to DVRCN,
+                                        "Distance Vision Sphere Left" to DVLSN,
+                                        "Distance Vision Cylinder Left" to DVLCN,
+                                        "Distance Vision Cylinder Axis Right" to DVRCAN,
+                                        "Distance Vision Cylinder Axis Left" to DVLCAN,
+                                        "Near Vision Sphere Right" to NVRSN,
+                                        "Near Vision Cylinder Right" to NVRCN,
+                                        "Near Vision Sphere Left" to NVLSN,
+                                        "Near Vision Cylinder Left" to NVLCN,
+                                        "Near Vision Cylinder Axis Right" to NVRCAN,
+                                        "Near Vision Cylinder Axis Left" to NVLCAN,
                                         "Interpupillary distance" to IPD
                                     )
                                     newGlassPrescription.forEach { (key, value) ->
@@ -1336,6 +1341,8 @@ data class PatientData(
     val newGlassPrescription: Map<String, String>  // New field for "New Glass Prescription" observations
 )
 
+
+
 fun exportToPDF(data: PatientData, context: Context) {
     val pdfDocument = PdfDocument()
     val pageWidth = 595
@@ -1348,18 +1355,28 @@ fun exportToPDF(data: PatientData, context: Context) {
     var page = pdfDocument.startPage(pageInfo)
 
     var canvas = page.canvas
+
+    // Paint initialization
     val paint = Paint().apply {
+        color = BLACK // Set color to black for text
         textSize = 12f
         style = Paint.Style.FILL
+        isAntiAlias = true // Enable anti-aliasing
     }
+
+    val linePaint = Paint().apply {
+        color = BLACK // Set color to black for lines
+        style = Paint.Style.STROKE
+        strokeWidth = 2f
+        isAntiAlias = true // Enable anti-aliasing
+    }
+
     val headingPaint = Paint().apply {
+        color = BLACK // Set color to black for headings
         textSize = 16f
         style = Paint.Style.FILL
         textAlign = Paint.Align.CENTER
-    }
-    val linePaint = Paint().apply {
-        style = Paint.Style.STROKE
-        strokeWidth = 2f
+        isAntiAlias = true // Enable anti-aliasing
     }
 
     // Draw logo in the center
@@ -1458,7 +1475,6 @@ fun exportToPDF(data: PatientData, context: Context) {
 }
 
 
-// Function to draw a table for observations with lines
 private fun drawObservationTable(
     canvas: Canvas,
     observations: Map<String, String>,
@@ -1469,25 +1485,42 @@ private fun drawObservationTable(
 ): Float {
     val cellHeight = 30f
     var yPos = startY
-    val rightX = pageWidth / 3f + 20f
-    val leftX = 2 * pageWidth / 3f + 40f
+    val column1X = 10f  // X position for the first column (parameters)
+    val column2X = pageWidth / 3f + 20f // X position for the second column (right eye)
+    val column3X = 2 * pageWidth / 3f + 40f // X position for the third column (left eye)
 
     // Draw headers
-    canvas.drawText("Eye", 10f, yPos, textPaint)
-    canvas.drawText("Right Eye", rightX, yPos, textPaint)
-    canvas.drawText("Left Eye", leftX, yPos, textPaint)
+    canvas.drawText("Parameter", column1X, yPos, textPaint)
+    canvas.drawText("Right Eye", column2X, yPos, textPaint)
+    canvas.drawText("Left Eye", column3X, yPos, textPaint)
     yPos += cellHeight
 
-    // Draw table cells and lines
-    observations.forEach { (key, value) ->
-        val (rightEyeData, leftEyeData) = getEyeData(key, value)
+    // List of parameters that are relevant for both eyes
+    val parameters = listOf(
+        "Distance Vision Sphere",
+        "Distance Vision Cylinder",
+        "Distance Vision Cylinder Axis",
+        "Near Vision Sphere",
+        "Near Vision Cylinder",
+        "Near Vision Cylinder Axis"
+    )
 
-        // Draw text
-        canvas.drawText(key, 10f, yPos, textPaint)
-        canvas.drawText(rightEyeData, rightX, yPos, textPaint)
-        canvas.drawText(leftEyeData, leftX, yPos, textPaint)
+    // Loop through each parameter and fetch corresponding right and left eye data
+    parameters.forEach { parameter ->
+        // Keys for right and left eye data
+        val rightEyeKey = "$parameter Right" // Key for right eye data
+        val leftEyeKey = "$parameter Left"   // Key for left eye data
 
-        // Draw lines for each cell
+        // Fetch the values from the observations map using the keys
+        val rightEyeData = observations[rightEyeKey] ?: "" // Default to empty if no data
+        val leftEyeData = observations[leftEyeKey] ?: ""
+
+        // Draw the parameter name, right eye data, and left eye data in their respective columns
+        canvas.drawText(parameter, column1X, yPos, textPaint)
+        canvas.drawText(rightEyeData, column2X, yPos, textPaint)
+        canvas.drawText(leftEyeData, column3X, yPos, textPaint)
+
+        // Draw horizontal lines to separate rows
         canvas.drawRect(5f, yPos - cellHeight + 5f, pageWidth - 5f, yPos + 5f, linePaint)
 
         yPos += cellHeight
@@ -1495,6 +1528,7 @@ private fun drawObservationTable(
 
     return yPos // Return the updated yPos for the next section
 }
+
 
 // Function to get data for both eyes
 private fun getEyeData(key: String, value: String): Pair<String, String> {

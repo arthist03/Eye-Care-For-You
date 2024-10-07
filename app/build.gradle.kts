@@ -73,11 +73,6 @@ dependencies {
     implementation(libs.places)
     implementation (libs.coil.compose)
     implementation(libs.androidx.glance)
-<<<<<<< HEAD
-=======
-    implementation (libs.ui)
-    implementation (libs.androidx.navigation.compose.v260)
->>>>>>> edfb36e566ddffaa157357f2f17c67533adaa445
     implementation(libs.androidx.material.icons.extended)
     implementation(libs.firebase.crashlytics.buildtools)
     testImplementation(libs.junit)
