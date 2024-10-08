@@ -3,6 +3,7 @@ package com.example.eyecare.reception
 import android.Manifest
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.provider.MediaStore
 import android.util.Log
@@ -25,6 +26,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.navigation.NavController
 import com.example.eyecare.Extra.AuthViewModel
@@ -171,7 +173,18 @@ fun PatientEntryCard(searchQuery: String, onSearchQueryChange: (String) -> Unit,
             )
 
             ElevatedButton(
-                onClick = { cameraPermissionLauncher.launch(arrayOf(Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE)) },
+                onClick = {
+                    // Check current permission status before launching the request
+                    when {
+                        ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED &&
+                                ContextCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED -> {
+                            openCameraForResult(context) { uri ->
+                                processImage(context, uri)
+                            }
+                        }
+                        else -> cameraPermissionLauncher.launch(arrayOf(Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE))
+                    }
+                },
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF39C12))
             ) {
                 Text(text = "Capture Image", color = Color.White)
@@ -241,34 +254,16 @@ fun openCameraForResult(context: Context, onResult: (Uri) -> Unit) {
 }
 
 private fun processImage(context: Context, imageUri: Uri) {
-    val image: InputImage
-    try {
-        image = InputImage.fromFilePath(context, imageUri)
-        val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
+    // Implement your image processing logic here, for example, using ML Kit for text recognition
+    val inputImage = InputImage.fromFilePath(context, imageUri)
+    val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
 
-        recognizer.process(image)
-            .addOnSuccessListener { visionText ->
-                parseDetails(visionText.text)
-            }
-            .addOnFailureListener { e ->
-                Log.e("ImageRecognition", "Error: ${e.message}")
-            }
-    } catch (e: IOException) {
-        Log.e("ImageRecognition", "Error loading image: ${e.message}")
-    }
-}
-
-private fun parseDetails(text: String) {
-    // Regular expressions to extract relevant details
-    val namePattern = "Name: (.+)".toRegex()
-    val idPattern = "ID: (\\d+)".toRegex()
-
-    val nameMatch = namePattern.find(text)
-    val idMatch = idPattern.find(text)
-
-    val extractedName = nameMatch?.groupValues?.get(1) ?: "Unknown"
-    val extractedId = idMatch?.groupValues?.get(1) ?: "Unknown"
-
-    // Use extracted data here
-    Log.d("ParsedDetails", "Name: $extractedName, ID: $extractedId")
+    recognizer.process(inputImage)
+        .addOnSuccessListener { visionText ->
+            // Handle recognized text
+            Log.d("TextRecognition", "Recognized text: ${visionText.text}")
+        }
+        .addOnFailureListener { e ->
+            Log.e("TextRecognition", "Text recognition failed: ${e.message}")
+        }
 }

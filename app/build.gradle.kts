@@ -102,4 +102,11 @@ dependencies {
     implementation (libs.androidx.camera.view)
     implementation (libs.text.recognition)
 
+    implementation (libs.google.firebase.storage.ktx)
+    implementation (libs.androidx.camera.camera2.v110alpha11)
+    implementation (libs.androidx.camera.lifecycle.v110alpha11)
+    implementation (libs.androidx.camera.view.v100alpha31)
+    implementation (libs.androidx.ui.v105)
+
+
 }
