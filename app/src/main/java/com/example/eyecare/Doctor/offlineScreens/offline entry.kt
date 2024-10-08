@@ -1483,19 +1483,26 @@ private fun drawObservationTable(
     linePaint: Paint,
     textPaint: Paint
 ): Float {
-    val cellHeight = 30f
+    val cellHeight = 40f // Height of each cell
     var yPos = startY
+    val padding = 10f // Padding for the text inside the cells
+
+    // Define the width for each column
+    val columnWidth = pageWidth / 3f // Equal width for each column
     val column1X = 10f  // X position for the first column (parameters)
-    val column2X = pageWidth / 3f + 20f // X position for the second column (right eye)
-    val column3X = 2 * pageWidth / 3f + 40f // X position for the third column (left eye)
+    val column2X = column1X + columnWidth // X position for the second column (right eye)
+    val column3X = column2X + columnWidth // X position for the third column (left eye)
 
-    // Draw headers
-    canvas.drawText("Parameter", column1X, yPos, textPaint)
-    canvas.drawText("Right Eye", column2X, yPos, textPaint)
-    canvas.drawText("Left Eye", column3X, yPos, textPaint)
+    // Draw table headers
+    canvas.drawTextCentered("Parameter", column1X, yPos, cellHeight, columnWidth, textPaint)
+    canvas.drawTextCentered("Right Eye", column2X, yPos, cellHeight, columnWidth, textPaint)
+    canvas.drawTextCentered("Left Eye", column3X, yPos, cellHeight, columnWidth, textPaint)
+
+    // Draw horizontal line for header
     yPos += cellHeight
+    canvas.drawLine(column1X, yPos, column3X + columnWidth, yPos, linePaint)
 
-    // List of parameters that are relevant for both eyes
+    // List of parameters for both eyes
     val parameters = listOf(
         "Distance Vision Sphere",
         "Distance Vision Cylinder",
@@ -1505,28 +1512,43 @@ private fun drawObservationTable(
         "Near Vision Cylinder Axis"
     )
 
-    // Loop through each parameter and fetch corresponding right and left eye data
+    // Loop through parameters and draw table rows
     parameters.forEach { parameter ->
-        // Keys for right and left eye data
-        val rightEyeKey = "$parameter Right" // Key for right eye data
-        val leftEyeKey = "$parameter Left"   // Key for left eye data
+        val rightEyeKey = "$parameter Right"
+        val leftEyeKey = "$parameter Left"
 
-        // Fetch the values from the observations map using the keys
-        val rightEyeData = observations[rightEyeKey] ?: "" // Default to empty if no data
+        val rightEyeData = observations[rightEyeKey] ?: ""
         val leftEyeData = observations[leftEyeKey] ?: ""
 
-        // Draw the parameter name, right eye data, and left eye data in their respective columns
-        canvas.drawText(parameter, column1X, yPos, textPaint)
-        canvas.drawText(rightEyeData, column2X, yPos, textPaint)
-        canvas.drawText(leftEyeData, column3X, yPos, textPaint)
+        // Draw parameter and values
+        canvas.drawTextCentered(parameter, column1X, yPos, cellHeight, columnWidth, textPaint)
+        canvas.drawTextCentered(rightEyeData, column2X, yPos, cellHeight, columnWidth, textPaint)
+        canvas.drawTextCentered(leftEyeData, column3X, yPos, cellHeight, columnWidth, textPaint)
 
-        // Draw horizontal lines to separate rows
-        canvas.drawRect(5f, yPos - cellHeight + 5f, pageWidth - 5f, yPos + 5f, linePaint)
-
+        // Draw horizontal lines for each row
         yPos += cellHeight
+        canvas.drawLine(column1X, yPos, column3X + columnWidth, yPos, linePaint)
     }
 
-    return yPos // Return the updated yPos for the next section
+    // Draw vertical lines for the table
+    canvas.drawLine(column1X, startY, column1X, yPos, linePaint)
+    canvas.drawLine(column2X, startY, column2X, yPos, linePaint)
+    canvas.drawLine(column3X, startY, column3X, yPos, linePaint)
+    canvas.drawLine(column3X + columnWidth, startY, column3X + columnWidth, yPos, linePaint)
+
+    // Return updated yPos for next content, adding some space after the table
+    return yPos + 20f // Add space after the table
+}
+
+
+
+
+// Helper function to center text within each cell
+private fun Canvas.drawTextCentered(text: String, x: Float, y: Float, cellHeight: Float, cellWidth: Float, paint: Paint) {
+    val textWidth = paint.measureText(text)
+    val textX = x + (cellWidth - textWidth) / 2f // Center the text horizontally
+    val textY = y + (cellHeight / 2f) - (paint.ascent() + paint.descent()) / 2f // Center the text vertically
+    this.drawText(text, textX, textY, paint)
 }
 
 

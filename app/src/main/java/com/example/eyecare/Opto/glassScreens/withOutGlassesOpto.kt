@@ -11,6 +11,8 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
@@ -601,16 +603,22 @@ private fun findAvailableDoctor(
 
 
 
-
-
-
-
 @Composable
 fun VerticalSnellenSlider(value: Float, onValueChange: (Float) -> Unit, label: String) {
+    // Define the allowed Snellen values
+    val snellenValues = listOf(60f, 36f, 24f, 18f, 12f, 9f, 6f)
+
+    // Obtain the HapticFeedback instance
+    val haptic = LocalHapticFeedback.current
+
+    // Find the index of the current value in the list
+    val currentIndex = snellenValues.indexOf(value.coerceIn(6f, 60f))
+
     Column(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(text = "$label: 6/${value.toInt()}")
+        // Display the current value in the Snellen format
+        Text(text = "$label: 6/${snellenValues[currentIndex].toInt()}")
 
         // Use Box to allow vertical rotation of the Slider
         Box(
@@ -620,45 +628,62 @@ fun VerticalSnellenSlider(value: Float, onValueChange: (Float) -> Unit, label: S
                 .background(Color(0xFFE7F0FF), RoundedCornerShape(16.dp))
         ) {
             Slider(
-                value = value,
-                onValueChange = { newValue ->
-                    onValueChange(newValue.coerceIn(6f, 60f)) // Coerce value to be within the range
+                value = currentIndex.toFloat(),
+                onValueChange = { newIndex ->
+                    onValueChange(snellenValues[newIndex.toInt()]) // Use the exact value from the list
+
+                    // Trigger haptic feedback when the value changes
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                 },
-                valueRange = 6f..60f,
-                steps = 10,
+                valueRange = 0f..(snellenValues.size - 1).toFloat(), // Restrict slider to the indices
+                steps = snellenValues.size - 2, // Define the number of steps based on the list
                 modifier = Modifier
-                    .fillMaxHeight()
-                    .height(10.dp)// Fill the available height in the rotated Box
+                    .fillMaxHeight() // Fill the available height in the rotated Box
                     .align(Alignment.Center) // Center the Slider in the Box
+                    .height(10.dp) // Height of the vertical slider
             )
         }
     }
 }
 
+
+
 @Composable
 fun VerticalNearSlider(valueN: Float, onValueChange: (Float) -> Unit, label: String) {
+    // Define the allowed Near vision values
+    val nearValues = listOf(6f, 8f, 10f, 24f, 32f, 48f, 49f) // Use 49f for ">N48"
+
+    // Obtain the HapticFeedback instance
+    val haptic = LocalHapticFeedback.current
+
+    // Find the index of the current value in the list
+    val currentIndex = nearValues.indexOf(valueN.coerceIn(6f, 49f))
+
     Column(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Display the label and the formatted near-sight value
-        Text(text = "$label: N/${valueN.toInt()}")
+        // Display the current value in the Near format
+        Text(text = if (nearValues[currentIndex] == 49f) "$label: >N48" else "$label: N/${nearValues[currentIndex].toInt()}")
 
         // Use Box to allow vertical rotation of the Slider
         Box(
             modifier = Modifier
-                .height(60.dp) // Height of the vertical slider (same as the slider height)
-                .width(150.dp)
+                .height(60.dp) // Height of the vertical slider
+                .width(150.dp) // Width of the vertical slider (to make it visible)
                 .background(Color(0xFFE7F0FF), RoundedCornerShape(16.dp))
         ) {
             Slider(
-                value = valueN,
-                onValueChange = { newValue ->
-                    onValueChange(newValue.coerceIn(6f, 60f)) // Coerce value to be within the range
+                value = currentIndex.toFloat(),
+                onValueChange = { newIndex ->
+                    onValueChange(nearValues[newIndex.toInt()]) // Use the exact value from the list
+
+                    // Trigger haptic feedback when the value changes
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                 },
-                valueRange = 6f..60f,
-                steps = 10,
+                valueRange = 0f..(nearValues.size - 1).toFloat(), // Restrict slider to the indices
+                steps = nearValues.size - 2, // Define the number of steps based on the list
                 modifier = Modifier
-                    .fillMaxHeight() // Fill the available height
+                    .fillMaxHeight() // Fill the available height in the rotated Box
                     .align(Alignment.Center) // Center the Slider in the Box
                     .height(10.dp) // Height of the vertical slider
             )
