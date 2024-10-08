@@ -18,6 +18,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
@@ -34,6 +35,9 @@ import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import androidx.compose.ui.platform.LocalContext
+import coil.compose.rememberAsyncImagePainter
+import coil.request.ImageRequest
+import com.example.eyecare.R
 
 @Composable
 fun PatientCatalogPage(navController: NavController) {
@@ -231,6 +235,9 @@ data class Patient(
 
 @Composable
 fun PatientCard(patient: Patient, onClick: () -> Unit) {
+    // Construct the image URL based on the patient ID
+    val imageUrl = "https://firebasestorage.googleapis.com/v0/b/eyecare-for-you.appspot.com/o/patient_images%2F${patient.id}.jpg?alt=media"
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -238,20 +245,27 @@ fun PatientCard(patient: Patient, onClick: () -> Unit) {
             .clickable { onClick() },
         elevation = CardDefaults.cardElevation(4.dp),
     ) {
-        Row(modifier = Modifier.padding(10.dp)) {
+        Row(modifier = Modifier.padding(10.dp), verticalAlignment = Alignment.CenterVertically) {
             Image(
-                painter = rememberImagePainter(patient.imageUri),
+                painter = // Replace with your placeholder resource
+                rememberAsyncImagePainter(ImageRequest.Builder // Replace with your error image resource
+                    (LocalContext.current).data(data = imageUrl).apply(block = fun ImageRequest.Builder.() {
+                    placeholder(R.drawable.edit) // Replace with your placeholder resource
+                    error(R.drawable.addfriend) // Replace with your error image resource
+                }).build()
+                ),
                 contentDescription = "Patient Image",
                 modifier = Modifier
-                    .size(64.dp)
-                    .padding(end = 16.dp),
+                    .size(100.dp).clip(RoundedCornerShape(50.dp))
+                    .padding(),
                 contentScale = ContentScale.Crop
             )
+
 
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(text = "Name: ${patient.name}")
                 Text(text = "Age: ${patient.age} years")
-                Text(text = "Gender: ${patient.visitingDate}")
+                Text(text = "Gender: ${patient.gender}")
                 Text(text = "Id: ${patient.id}")
                 Text(text = "Phone: ${patient.phone}")
             }

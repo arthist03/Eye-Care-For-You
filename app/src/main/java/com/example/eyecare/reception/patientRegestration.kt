@@ -1,9 +1,17 @@
 package com.example.eyecare.reception
 
 import android.app.DatePickerDialog
+import android.content.Context
+import android.content.Intent
+import android.graphics.Bitmap
+import android.net.Uri
 import android.util.Log
 import android.widget.DatePicker
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.result.launch
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -20,6 +28,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -28,18 +37,25 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
+import androidx.core.content.FileProvider
 import androidx.navigation.NavController
+import coil.compose.rememberAsyncImagePainter
 import com.example.eyecare.Extra.AuthViewModel
 import com.example.eyecare.topBar.topBarId
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
+import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
+import java.io.ByteArrayOutputStream
+import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
 import java.time.LocalDate
 import java.time.Period
 import java.time.format.DateTimeFormatter
@@ -52,7 +68,7 @@ fun PatientDetailsScreen(navController: NavController, patientId: String?) {
     var address by remember { mutableStateOf(TextFieldValue("")) }
     var phone by remember { mutableStateOf(TextFieldValue("")) }
     var selectedGender by remember { mutableStateOf("Male") }
-    var imageUri by remember { mutableStateOf<String?>(null) }
+    var imageBitmap by remember { mutableStateOf<Bitmap?>(null) }
     var dateOfBirth by remember { mutableStateOf<LocalDate?>(null) }
     var todayDate by remember { mutableStateOf(LocalDate.now()) }
     var showDatePicker by remember { mutableStateOf(false) }
@@ -63,8 +79,19 @@ fun PatientDetailsScreen(navController: NavController, patientId: String?) {
 
     val db = FirebaseFirestore.getInstance()
     val context = LocalContext.current
-
     val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
+
+    val permissions = remember { mutableStateOf(false) }
+
+    val imageCaptureLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicturePreview()) { bitmap ->
+        if (bitmap != null) {
+            imageBitmap = bitmap
+            Log.d("PatientDetailsScreen", "Image captured successfully")
+        } else {
+            Log.d("PatientDetailsScreen", "No image captured")
+        }
+    }
+
 
     LaunchedEffect(patientId) {
         val patientDocRef = db.collection("patients").document(patientId ?: "")
@@ -293,24 +320,34 @@ fun PatientDetailsScreen(navController: NavController, patientId: String?) {
                         Text(text = "Other")
                     }
 
+
+
+
                     Spacer(modifier = Modifier.height(12.dp))
 
                     // Display profile image if available
-                    if (imageUri != null) {
-                        Icon(
-                            imageVector = Icons.Default.AccountCircle,
-                            contentDescription = "Profile",
-                            tint = Color.DarkGray,
+                    if (imageBitmap  != null) {
+                        Image(
+                            bitmap = imageBitmap!!.asImageBitmap(),
+                            contentDescription = "Captured Image",
                             modifier = Modifier
                                 .size(120.dp)
                                 .clip(CircleShape)
                                 .background(Color.White)
                         )
+                        ElevatedButton(
+                            onClick = { imageCaptureLauncher.launch() },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text("Capture Image")
+                        }
                     } else {
-                        Text(
-                            text = "No profile image selected",
-                            modifier = Modifier.padding(8.dp)
-                        )
+                        ElevatedButton(
+                            onClick = { imageCaptureLauncher.launch() },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text("Capture Image")
+                        }
                     }
 
                     Spacer(modifier = Modifier.height(12.dp))
@@ -324,7 +361,7 @@ fun PatientDetailsScreen(navController: NavController, patientId: String?) {
                                 address = address.text,
                                 phone = phone.text,
                                 gender = selectedGender,
-                                imageUri = imageUri,
+                                imageBitmap = imageBitmap,
                                 dateOfBirth = dateOfBirth,
                                 visitingDate = todayDate,
                                 db = db,
@@ -339,6 +376,7 @@ fun PatientDetailsScreen(navController: NavController, patientId: String?) {
                     ) {
                         Text("Save Patient Details")
                     }
+
                 }
             }
         }
@@ -365,12 +403,41 @@ fun calculateAge(dateOfBirth: LocalDate, visitingDate: LocalDate): String {
     return period.years.toString()
 }
 
+fun bitmapToBytes(bitmap: Bitmap): ByteArrayOutputStream {
+    val byteStream = ByteArrayOutputStream()
+    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteStream)
+    return byteStream
+}
+
+suspend fun uploadImageToFirebaseStorage(bitmap: Bitmap, patientId: String): String? {
+    return try {
+        val storageRef = FirebaseStorage.getInstance().reference.child("patient_images/$patientId.jpg")
+
+        // Convert bitmap to byte array
+        val byteArray = bitmapToBytes(bitmap).toByteArray()
+
+        // Check if the byte array is valid
+        Log.d("uploadImage", "Uploading image of size: ${byteArray.size} bytes")
+
+        // Upload the image
+        storageRef.putBytes(byteArray).await()
+
+        // Get the download URL
+        storageRef.downloadUrl.await().toString()
+    } catch (e: Exception) {
+        Log.e("uploadImage", "Failed to upload image", e)
+        null
+    }
+}
+
+
+
 fun savePatientData(
     name: String,
     address: String,
     phone: String,
     gender: String,
-    imageUri: String?,
+    imageBitmap: Bitmap?,
     dateOfBirth: LocalDate?,
     visitingDate: LocalDate,
     db: FirebaseFirestore,
@@ -403,14 +470,23 @@ fun savePatientData(
                 "gender" to gender,
                 "age" to age,
                 "id" to patientId
-                )
+            )
 
             // Only add non-nullable fields to the map
             dateOfBirth?.let {
                 patientDetails["dateOfBirth"] = it.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
             }
-            imageUri?.let {
-                patientDetails["imageUri"] = it
+
+            // Upload the image in bit-format to Firebase Storage
+            if (imageBitmap != null) {
+                val imageUrl = uploadImageToFirebaseStorage(imageBitmap, patientId)
+                if (imageUrl != null) {
+                    patientDetails["imageUri"] = imageUrl
+                } else {
+                    Log.e("savePatientData", "Failed to upload image")
+                }
+            } else {
+                Log.e("savePatientData", "Image bitmap is null")
             }
 
             // Save patient details in the main document

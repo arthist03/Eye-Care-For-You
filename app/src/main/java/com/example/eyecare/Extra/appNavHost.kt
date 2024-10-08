@@ -13,17 +13,12 @@ import com.example.eyecare.Doctor.offlineScreens.offlinScreen
 import com.example.eyecare.HOD.hodcatalog
 import com.example.eyecare.Opto.ExaminationDetailsScreen
 import com.example.eyecare.Opto.PatientCatalogPage
-<<<<<<< HEAD
-=======
-import com.example.eyecare.Opto.glassScreens.OptoCheckupScreen
->>>>>>> cb78ff2fe5d04270eb7f115e2e069312b9c172dd
 import com.example.eyecare.Opto.glassScreens.newGlassOpto
 import com.example.eyecare.Opto.glassScreens.withGlassOpto
 import com.example.eyecare.Opto.glassScreens.withoutGlassOpto
 import com.example.eyecare.Trail.pageDoctors
 import com.example.eyecare.Trail.pageHOD
 import com.example.eyecare.Opto.pageOpto
-import com.example.eyecare.Opto.PreviewScreen
 import com.example.eyecare.reception.PageReception
 import com.example.eyecare.WelcomeHome.LoginScreen
 import com.example.eyecare.WelcomeHome.homeScreen
@@ -74,12 +69,6 @@ fun AppNavHost(authViewModel: AuthViewModel) {
             val patientId = backStackEntry.arguments?.getString("patientId") ?: ""
             newGlassOpto(navController = navController, patientId = patientId)
         }
-        composable("OptoCheckupScreen/{patientId}") { backStackEntry ->
-            val name = backStackEntry.arguments?.getString("name") ?: ""
-            val patientId = backStackEntry.arguments?.getString("patientId") ?: ""
-            val visitDate = backStackEntry.arguments?.getString("visitingDate") ?: ""
-            OptoCheckupScreen(navController = navController)
-        }
 
         composable("withGlassDoc/{patientId}") { backStackEntry ->
             val patientId = backStackEntry.arguments?.getString("patientId") ?: ""
@@ -94,16 +83,9 @@ fun AppNavHost(authViewModel: AuthViewModel) {
             newGlassDoc(navController = navController, patientId = patientId)
         }
 
-<<<<<<< HEAD
         composable("PreviewScreen/{patientId}") { backStackEntry ->
             val patientId = backStackEntry.arguments?.getString("patientId") ?: ""
             ExaminationDetailsScreen(navController = navController, patientId = patientId)
         }
-=======
-
-
->>>>>>> cb78ff2fe5d04270eb7f115e2e069312b9c172dd
-
-
     }
 }
