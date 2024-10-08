@@ -5,9 +5,9 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
+import android.graphics.Rect
 import android.graphics.Paint
 import android.graphics.pdf.PdfDocument
-import android.util.Log
 import android.widget.DatePicker
 import android.widget.Toast
 import androidx.compose.foundation.Image
@@ -37,7 +37,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.Divider
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -64,8 +63,6 @@ import java.time.format.DateTimeFormatter
 import java.util.Calendar
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.navigation.NavController
-import com.example.eyecare.ui.theme.BLACK
-import com.example.eyecare.ui.theme.Grayy
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -1341,13 +1338,11 @@ data class PatientData(
     val newGlassPrescription: Map<String, String>  // New field for "New Glass Prescription" observations
 )
 
-
-
 fun exportToPDF(data: PatientData, context: Context) {
     val pdfDocument = PdfDocument()
     val pageWidth = 595
-    val pageHeight = 842
-    val margin = 40f // Margin for top and bottom to allow for content space
+    val pageHeight = 900
+    val margin = 30f // Margin for top and bottom to allow for content space
     val availableHeight = pageHeight - margin * 2 // Available space for content
 
     var currentPageNumber = 1 // Manually track the page number
@@ -1358,21 +1353,21 @@ fun exportToPDF(data: PatientData, context: Context) {
 
     // Paint initialization
     val paint = Paint().apply {
-        color = BLACK // Set color to black for text
+        color = android.graphics.Color.BLACK
         textSize = 12f
         style = Paint.Style.FILL
         isAntiAlias = true // Enable anti-aliasing
     }
 
     val linePaint = Paint().apply {
-        color = BLACK // Set color to black for lines
+        color = android.graphics.Color.BLACK
         style = Paint.Style.STROKE
         strokeWidth = 2f
         isAntiAlias = true // Enable anti-aliasing
     }
 
     val headingPaint = Paint().apply {
-        color = BLACK // Set color to black for headings
+        color = android.graphics.Color.BLACK
         textSize = 16f
         style = Paint.Style.FILL
         textAlign = Paint.Align.CENTER
@@ -1382,23 +1377,23 @@ fun exportToPDF(data: PatientData, context: Context) {
     // Draw logo in the center
     val logoWidth = 200 // desired width in pixels
     val logoHeight = 100 // desired height in pixels
-    val logoBitmap = BitmapFactory.decodeResource(context.resources, R.drawable.kmc)
+    val logoBitmap = BitmapFactory.decodeResource(context.resources, R.drawable.kmc) // Ensure this drawable exists
     val scaledLogoBitmap = Bitmap.createScaledBitmap(logoBitmap, logoWidth, logoHeight, false)
     canvas.drawBitmap(scaledLogoBitmap, (pageWidth - logoWidth) / 2f, 20f, paint)
-    logoBitmap.recycle() // Free the original bitmap
+    // Do not recycle the bitmap here yet
 
-    var yPos = margin + 120f // Starting position for content
+    var yPos = margin + 80f // Starting position for content
 
     // Function to check the page limit and create a new page if needed
     fun checkPageLimitAndCreateNewPage() {
-        if (yPos + 30 > availableHeight) {
+        if (yPos + 30f > availableHeight) { // Ensure Float comparison
             pdfDocument.finishPage(page) // Finish the current page
             currentPageNumber++ // Increment page number
             pageInfo = PdfDocument.PageInfo.Builder(pageWidth, pageHeight, currentPageNumber).create() // Create a new page
             page = pdfDocument.startPage(pageInfo)
             canvas = page.canvas // Update canvas for the new page
             canvas.drawBitmap(scaledLogoBitmap, (pageWidth - logoWidth) / 2f, 20f, paint) // Redraw logo on the new page
-            yPos = margin + 120f // Reset yPos for new page
+            yPos = margin + 80f // Reset yPos for new page
         }
     }
 
@@ -1436,67 +1431,78 @@ fun exportToPDF(data: PatientData, context: Context) {
     yPos += 20f
 
     // Draw table for Without Glasses
-    yPos = drawObservationTable(canvas, data.withoutGlasses, yPos, pageWidth, linePaint, paint)
+    yPos = drawObservationTable(canvas, data.withoutGlasses, yPos, pageWidth, pageHeight, linePaint, paint)
 
     // With Glasses Section
-    yPos += 40f // Add space between sections
+    yPos += 20f // Add space between sections
     checkPageLimitAndCreateNewPage() // Check if we need a new page
     canvas.drawText("With Glasses Observations", pageWidth / 2f, yPos, headingPaint)
     yPos += 20f
 
     // Draw table for With Glasses
-    yPos = drawObservationTable(canvas, data.withGlasses, yPos, pageWidth, linePaint, paint)
+    yPos = drawObservationTable(canvas, data.withGlasses, yPos, pageWidth, pageHeight, linePaint, paint)
 
     // New Glass Prescription Section
-    yPos += 40f // Add space between sections
+    yPos += 20f // Add space between sections
     checkPageLimitAndCreateNewPage() // Check if we need a new page
     canvas.drawText("New Glass Prescription", pageWidth / 2f, yPos, headingPaint)
     yPos += 20f
 
     // Draw table for New Glass Prescription
-    yPos = drawObservationTable(canvas, data.newGlassPrescription, yPos, pageWidth, linePaint, paint)
+    yPos = drawObservationTable(canvas, data.newGlassPrescription, yPos, pageWidth, pageHeight, linePaint, paint)
 
     // Finish the last page
     pdfDocument.finishPage(page)
 
     // Save the PDF to a file
-    val filePath = context.getExternalFilesDir(null)?.absolutePath + "/${data.name}  consulted by ${data.docName}.pdf"
+    val filePath = context.getExternalFilesDir(null)?.absolutePath + "/${data.name} consulted by ${data.docName}.pdf"
     val file = File(filePath)
     try {
         pdfDocument.writeTo(FileOutputStream(file))
         Toast.makeText(context, "PDF exported to ${file.absolutePath}", Toast.LENGTH_LONG).show()
     } catch (e: IOException) {
         e.printStackTrace()
-        Toast.makeText(context, "Error exporting PDF", Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, "Failed to export PDF", Toast.LENGTH_LONG).show()
     }
 
+    // Close and recycle resources
     pdfDocument.close()
-    scaledLogoBitmap.recycle() // Free the scaled logo bitmap
+    scaledLogoBitmap.recycle() // Recycle the bitmap
 }
 
 
+
+
+
+
+// Main function to draw the observation table on a canvas
 private fun drawObservationTable(
     canvas: Canvas,
     observations: Map<String, String>,
     startY: Float,
     pageWidth: Int,
+    pageHeight: Int, // Added pageHeight parameter
     linePaint: Paint,
-    textPaint: Paint
+    textPaint: Paint // Add textPaint parameter here
 ): Float {
-    val cellHeight = 40f // Height of each cell
+    val cellHeight = 20f // Height of each cell
     var yPos = startY
     val padding = 10f // Padding for the text inside the cells
 
     // Define the width for each column
-    val columnWidth = pageWidth / 3f // Equal width for each column
+    val columnWidth = pageWidth / 3.1f // Equal width for each column
     val column1X = 10f  // X position for the first column (parameters)
     val column2X = column1X + columnWidth // X position for the second column (right eye)
     val column3X = column2X + columnWidth // X position for the third column (left eye)
 
+    // Draw top horizontal line
+    canvas.drawLine(column1X, yPos, column3X + columnWidth, yPos, linePaint)
+
     // Draw table headers
-    canvas.drawTextCentered("Parameter", column1X, yPos, cellHeight, columnWidth, textPaint)
-    canvas.drawTextCentered("Right Eye", column2X, yPos, cellHeight, columnWidth, textPaint)
-    canvas.drawTextCentered("Left Eye", column3X, yPos, cellHeight, columnWidth, textPaint)
+    yPos += cellHeight
+    drawTextCentered(canvas, "Parameter", column1X, yPos, cellHeight, columnWidth, textPaint)
+    drawTextCentered(canvas, "Right Eye", column2X, yPos, cellHeight, columnWidth, textPaint)
+    drawTextCentered(canvas, "Left Eye", column3X, yPos, cellHeight, columnWidth, textPaint)
 
     // Draw horizontal line for header
     yPos += cellHeight
@@ -1514,6 +1520,13 @@ private fun drawObservationTable(
 
     // Loop through parameters and draw table rows
     parameters.forEach { parameter ->
+        // Check if yPos exceeds the page height
+        if (yPos + cellHeight > pageHeight) {
+            // Handle page overflow here (if this were a PDF, create new page)
+            // This is just for illustration
+            yPos = startY + cellHeight // Reset yPos to the start for the new page
+        }
+
         val rightEyeKey = "$parameter Right"
         val leftEyeKey = "$parameter Left"
 
@@ -1521,9 +1534,9 @@ private fun drawObservationTable(
         val leftEyeData = observations[leftEyeKey] ?: ""
 
         // Draw parameter and values
-        canvas.drawTextCentered(parameter, column1X, yPos, cellHeight, columnWidth, textPaint)
-        canvas.drawTextCentered(rightEyeData, column2X, yPos, cellHeight, columnWidth, textPaint)
-        canvas.drawTextCentered(leftEyeData, column3X, yPos, cellHeight, columnWidth, textPaint)
+        drawTextCentered(canvas, parameter, column1X, yPos, cellHeight, columnWidth, textPaint)
+        drawTextCentered(canvas, rightEyeData, column2X, yPos, cellHeight, columnWidth, textPaint)
+        drawTextCentered(canvas, leftEyeData, column3X, yPos, cellHeight, columnWidth, textPaint)
 
         // Draw horizontal lines for each row
         yPos += cellHeight
@@ -1540,16 +1553,28 @@ private fun drawObservationTable(
     return yPos + 20f // Add space after the table
 }
 
-
-
-
-// Helper function to center text within each cell
-private fun Canvas.drawTextCentered(text: String, x: Float, y: Float, cellHeight: Float, cellWidth: Float, paint: Paint) {
+// Helper function to draw centered text in a table cell
+private fun drawTextCentered(
+    canvas: Canvas,
+    text: String,
+    x: Float,
+    y: Float,
+    cellHeight: Float,
+    columnWidth: Float,
+    paint: Paint
+) {
+    // Calculate the baseline for vertical centering
+    val bounds = Rect()
+    paint.getTextBounds(text, 0, text.length, bounds)
+    val textHeight = bounds.height()
     val textWidth = paint.measureText(text)
-    val textX = x + (cellWidth - textWidth) / 2f // Center the text horizontally
-    val textY = y + (cellHeight / 2f) - (paint.ascent() + paint.descent()) / 2f // Center the text vertically
-    this.drawText(text, textX, textY, paint)
+    val textX = x + (columnWidth - textWidth) / 2
+    val textY = y + (cellHeight + textHeight) / 2 - 4 // Adjusting for vertical centering
+    canvas.drawText(text, textX, textY, paint)
 }
+
+
+
 
 
 // Function to get data for both eyes
