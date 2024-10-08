@@ -8,6 +8,7 @@ import android.graphics.Canvas
 import android.graphics.Rect
 import android.graphics.Paint
 import android.graphics.pdf.PdfDocument
+import android.os.Environment
 import android.widget.DatePicker
 import android.widget.Toast
 import androidx.compose.foundation.Image
@@ -41,6 +42,7 @@ import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -62,6 +64,7 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Calendar
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.glance.GlanceTheme.colors
 import androidx.navigation.NavController
 import java.io.File
 import java.io.FileOutputStream
@@ -205,8 +208,20 @@ fun offlinScreen(navController: NavController) {
                     label = { Text("Doctor Name") },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(bottom = 10.dp)
+                        .padding(bottom = 10.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = Color.Black,
+                        unfocusedTextColor = Color.Black,
+                        focusedLabelColor = Color.Black,
+                        focusedPlaceholderColor = Color.Black,
+                        focusedContainerColor = Color.White,
+                        unfocusedContainerColor = Color.White,
+                        focusedBorderColor = Color.Black,
+                        unfocusedBorderColor = Color.White
+                    ),
+                    maxLines = 1
                 )
+
             }
 
             item {
@@ -235,7 +250,18 @@ fun offlinScreen(navController: NavController) {
                     label = { Text("Patient Name") },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(bottom = 10.dp)
+                        .padding(bottom = 10.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = Color.Black,
+                        unfocusedTextColor = Color.Black,
+                        focusedLabelColor = Color.Black,
+                        focusedPlaceholderColor = Color.Black,
+                        focusedContainerColor = Color.White,
+                        unfocusedContainerColor = Color.White,
+                        focusedBorderColor = Color.Black,
+                        unfocusedBorderColor = Color.White
+                    ),
+                    maxLines = 1
                 )
             }
             item {
@@ -246,7 +272,18 @@ fun offlinScreen(navController: NavController) {
                     label = { Text("Patient Phone Number") },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(bottom = 10.dp)
+                        .padding(bottom = 10.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = Color.Black,
+                        unfocusedTextColor = Color.Black,
+                        focusedLabelColor = Color.Black,
+                        focusedPlaceholderColor = Color.Black,
+                        focusedContainerColor = Color.White,
+                        unfocusedContainerColor = Color.White,
+                        focusedBorderColor = Color.Black,
+                        unfocusedBorderColor = Color.White
+                    ),
+                    maxLines = 1
                 )
             }
 
@@ -258,7 +295,18 @@ fun offlinScreen(navController: NavController) {
                     label = { Text("Patient Aadhar Number") },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(bottom = 10.dp)
+                        .padding(bottom = 10.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = Color.Black,
+                        unfocusedTextColor = Color.Black,
+                        focusedLabelColor = Color.Black,
+                        focusedPlaceholderColor = Color.Black,
+                        focusedContainerColor = Color.White,
+                        unfocusedContainerColor = Color.White,
+                        focusedBorderColor = Color.Black,
+                        unfocusedBorderColor = Color.White
+                    ),
+                    maxLines = 1
                 )
             }
 
@@ -300,7 +348,7 @@ fun offlinScreen(navController: NavController) {
                 ) {
                     Text(
                         text = "Without Glasses Observation",
-                        fontSize = 25.sp
+                        fontSize = 20.sp
                     )
                 }
                 Spacer(modifier = Modifier.height(15.dp))
@@ -328,8 +376,8 @@ fun offlinScreen(navController: NavController) {
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text(text = "Distance Vision", style = TextStyle(fontSize = 20.sp))
-                                Text(text = "Sphere", style = TextStyle(fontSize = 20.sp))
+                                Text(text = "Distance Vision", style = TextStyle(fontSize = 15.sp))
+                                Text(text = "Sphere", style = TextStyle(fontSize = 15.sp))
                             }
 
                             Row(
@@ -365,9 +413,9 @@ fun offlinScreen(navController: NavController) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 Text(
                                     text = "Distance Vision",
-                                    style = TextStyle(fontSize = 20.sp)
+                                    style = TextStyle(fontSize = 15.sp)
                                 )
-                                Text(text = "Cylindrical", style = TextStyle(fontSize = 20.sp))
+                                Text(text = "Cylindrical", style = TextStyle(fontSize = 15.sp))
                             }
 
                             Row(
@@ -402,9 +450,9 @@ fun offlinScreen(navController: NavController) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 Text(
                                     text = "Distance Vision",
-                                    style = TextStyle(fontSize = 20.sp)
+                                    style = TextStyle(fontSize = 15.sp)
                                 )
-                                Text(text = "Cylindrical Axis", style = TextStyle(fontSize = 20.sp))
+                                Text(text = "Cylindrical Axis",style = TextStyle(fontSize = 15.sp))
                             }
 
                             Row(
@@ -449,8 +497,8 @@ fun offlinScreen(navController: NavController) {
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text(text = "Near Vision", style = TextStyle(fontSize = 20.sp))
-                                Text(text = "Sphere", style = TextStyle(fontSize = 20.sp))
+                                Text(text = "Near Vision",style = TextStyle(fontSize = 15.sp))
+                                Text(text = "Sphere", style = TextStyle(fontSize = 15.sp))
                             }
                             Spacer(modifier = Modifier.width(35.dp))
 
@@ -487,9 +535,9 @@ fun offlinScreen(navController: NavController) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 Text(
                                     text = "Near Vision",
-                                    style = TextStyle(fontSize = 20.sp)
+                                    style = TextStyle(fontSize = 15.sp)
                                 )
-                                Text(text = "Cylindrical", style = TextStyle(fontSize = 20.sp))
+                                Text(text = "Cylindrical", style = TextStyle(fontSize = 15.sp))
                             }
                             Spacer(modifier = Modifier.width(35.dp))
 
@@ -525,9 +573,9 @@ fun offlinScreen(navController: NavController) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 Text(
                                     text = "Near Vision",
-                                    style = TextStyle(fontSize = 20.sp)
+                                    style = TextStyle(fontSize = 15.sp)
                                 )
-                                Text(text = "Cylindrical Axis", style = TextStyle(fontSize = 20.sp))
+                                Text(text = "Cylindrical Axis", style = TextStyle(fontSize = 15.sp))
                             }
 
                             Row(
@@ -600,7 +648,7 @@ fun offlinScreen(navController: NavController) {
                     ) {
                         Text(
                             text = "With Glasses Observation",
-                            fontSize = 30.sp
+                            fontSize = 20.sp
                         )
                     }
                     Spacer(modifier = Modifier.height(15.dp))
@@ -630,9 +678,9 @@ fun offlinScreen(navController: NavController) {
                                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                     Text(
                                         text = "Distance Vision",
-                                        style = TextStyle(fontSize = 20.sp)
+                                        style = TextStyle(fontSize = 15.sp)
                                     )
-                                    Text(text = "Sphere", style = TextStyle(fontSize = 20.sp))
+                                    Text(text = "Sphere", style = TextStyle(fontSize = 15.sp))
                                 }
 
                                 Row(
@@ -705,11 +753,11 @@ fun offlinScreen(navController: NavController) {
                                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                     Text(
                                         text = "Distance Vision",
-                                        style = TextStyle(fontSize = 20.sp)
+                                        style = TextStyle(fontSize = 15.sp)
                                     )
                                     Text(
                                         text = "Cylindrical Axis",
-                                        style = TextStyle(fontSize = 20.sp)
+                                        style = TextStyle(fontSize = 15.sp)
                                     )
                                 }
 
@@ -793,9 +841,9 @@ fun offlinScreen(navController: NavController) {
                                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                     Text(
                                         text = "Near Vision",
-                                        style = TextStyle(fontSize = 20.sp)
+                                        style = TextStyle(fontSize = 15.sp)
                                     )
-                                    Text(text = "Cylindrical", style = TextStyle(fontSize = 20.sp))
+                                    Text(text = "Cylindrical", style = TextStyle(fontSize = 15.sp))
                                 }
                                 Spacer(modifier = Modifier.width(35.dp))
 
@@ -831,11 +879,11 @@ fun offlinScreen(navController: NavController) {
                                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                     Text(
                                         text = "Near Vision",
-                                        style = TextStyle(fontSize = 20.sp)
+                                        style = TextStyle(fontSize = 15.sp)
                                     )
                                     Text(
                                         text = "Cylindrical Axis",
-                                        style = TextStyle(fontSize = 20.sp)
+                                        style = TextStyle(fontSize = 15.sp)
                                     )
                                 }
 
@@ -877,7 +925,7 @@ fun offlinScreen(navController: NavController) {
                 ) {
                     Text(
                         text = "New Glasses Observation",
-                        fontSize = 30.sp
+                        fontSize = 20.sp
                     )
                 }
                 Spacer(modifier = Modifier.height(15.dp))
@@ -905,8 +953,8 @@ fun offlinScreen(navController: NavController) {
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text(text = "Distance Vision", style = TextStyle(fontSize = 20.sp))
-                                Text(text = "Sphere", style = TextStyle(fontSize = 20.sp))
+                                Text(text = "Distance Vision", style = TextStyle(fontSize = 15.sp))
+                                Text(text = "Sphere", style = TextStyle(fontSize = 15.sp))
                             }
 
                             Row(
@@ -942,9 +990,9 @@ fun offlinScreen(navController: NavController) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 Text(
                                     text = "Distance Vision",
-                                    style = TextStyle(fontSize = 20.sp)
+                                    style = TextStyle(fontSize = 15.sp)
                                 )
-                                Text(text = "Cylindrical", style = TextStyle(fontSize = 20.sp))
+                                Text(text = "Cylindrical", style = TextStyle(fontSize = 15.sp))
                             }
 
                             Row(
@@ -979,9 +1027,9 @@ fun offlinScreen(navController: NavController) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 Text(
                                     text = "Distance Vision",
-                                    style = TextStyle(fontSize = 20.sp)
+                                    style = TextStyle(fontSize = 15.sp)
                                 )
-                                Text(text = "Cylindrical Axis", style = TextStyle(fontSize = 20.sp))
+                                Text(text = "Cylindrical Axis", style = TextStyle(fontSize = 15.sp))
                             }
 
                             Row(
@@ -1026,8 +1074,8 @@ fun offlinScreen(navController: NavController) {
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text(text = "Near Vision", style = TextStyle(fontSize = 20.sp))
-                                Text(text = "Sphere", style = TextStyle(fontSize = 20.sp))
+                                Text(text = "Near Vision", style = TextStyle(fontSize = 15.sp))
+                                Text(text = "Sphere", style = TextStyle(fontSize = 15.sp))
                             }
                             Spacer(modifier = Modifier.width(35.dp))
 
@@ -1064,9 +1112,9 @@ fun offlinScreen(navController: NavController) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 Text(
                                     text = "Near Vision",
-                                    style = TextStyle(fontSize = 20.sp)
+                                    style = TextStyle(fontSize = 15.sp)
                                 )
-                                Text(text = "Cylindrical", style = TextStyle(fontSize = 20.sp))
+                                Text(text = "Cylindrical", style = TextStyle(fontSize = 15.sp))
                             }
                             Spacer(modifier = Modifier.width(35.dp))
 
@@ -1102,9 +1150,9 @@ fun offlinScreen(navController: NavController) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 Text(
                                     text = "Near Vision",
-                                    style = TextStyle(fontSize = 20.sp)
+                                    style = TextStyle(fontSize = 15.sp)
                                 )
-                                Text(text = "Cylindrical Axis", style = TextStyle(fontSize = 20.sp))
+                                Text(text = "Cylindrical Axis", style = TextStyle(fontSize = 15.sp))
                             }
 
                             Row(
@@ -1139,9 +1187,9 @@ fun offlinScreen(navController: NavController) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 Text(
                                     text = "Interpupillary",
-                                    style = TextStyle(fontSize = 20.sp)
+                                    style = TextStyle(fontSize = 15.sp)
                                 )
-                                Text(text = "distance", style = TextStyle(fontSize = 20.sp))
+                                Text(text = "distance", style = TextStyle(fontSize = 15.sp))
                             }
 
                             Row(
@@ -1380,8 +1428,8 @@ fun exportToPDF(data: PatientData, context: Context) {
     val logoBitmap = BitmapFactory.decodeResource(context.resources, R.drawable.kmc) // Ensure this drawable exists
     val scaledLogoBitmap = Bitmap.createScaledBitmap(logoBitmap, logoWidth, logoHeight, false)
     canvas.drawBitmap(scaledLogoBitmap, (pageWidth - logoWidth) / 2f, 20f, paint)
-    // Do not recycle the bitmap here yet
 
+    // Use a variable for yPos to track vertical position on the page
     var yPos = margin + 80f // Starting position for content
 
     // Function to check the page limit and create a new page if needed
@@ -1454,9 +1502,12 @@ fun exportToPDF(data: PatientData, context: Context) {
     // Finish the last page
     pdfDocument.finishPage(page)
 
-    // Save the PDF to a file
-    val filePath = context.getExternalFilesDir(null)?.absolutePath + "/${data.name} consulted by ${data.docName}.pdf"
+    // Save the PDF to the Downloads directory
+    val downloadsDir = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "PATIENT PDF")
+    val filePath = "$downloadsDir/${data.name} consulted by ${data.docName}.pdf"
     val file = File(filePath)
+
+    // Write the document to the file
     try {
         pdfDocument.writeTo(FileOutputStream(file))
         Toast.makeText(context, "PDF exported to ${file.absolutePath}", Toast.LENGTH_LONG).show()
@@ -1469,6 +1520,8 @@ fun exportToPDF(data: PatientData, context: Context) {
     pdfDocument.close()
     scaledLogoBitmap.recycle() // Recycle the bitmap
 }
+
+
 
 
 

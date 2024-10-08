@@ -79,7 +79,6 @@ fun PatientCatalogPage(navController: NavController) {
     }
 
     // Fetch assigned patients from Firestore
-// Fetch assigned patients from Firestore
     DisposableEffect(selectedDate) {
         val firestoreRegistration = db.collection("users")
             .document(currentUserId ?: "")
@@ -92,9 +91,9 @@ fun PatientCatalogPage(navController: NavController) {
                     return@addSnapshotListener
                 }
 
-                val fetchedPatients = snapshot?.data?.get("ssignedPatients") as? List<Map<String, Any>> ?: emptyList()
-
-                patients = fetchedPatients.map { patientData ->
+                val fetchedPatients = snapshot?.data?.filterKeys { it != "assignedPatients" }?.mapNotNull { (key, value) ->
+                    value as? Map<String, Any>? // Ensure the value is a map
+                }?.map { patientData ->
                     Patient(
                         id = patientData["id"] as? String ?: "",
                         name = patientData["name"] as? String ?: "",
@@ -105,9 +104,10 @@ fun PatientCatalogPage(navController: NavController) {
                         imageUri = patientData["imageUri"] as? String,
                         visitingDate = selectedDate.replace("_", "/")  // Store as dd/MM/yyyy for display
                     )
-                }
+                } ?: emptyList()
 
-                filteredPatients = patients
+                patients = fetchedPatients
+                filteredPatients = fetchedPatients // Update filtered patients
                 isLoading = false
             }
 
@@ -116,13 +116,13 @@ fun PatientCatalogPage(navController: NavController) {
         }
     }
 
+    // Filtering logic based on search query and selected date
     LaunchedEffect(searchQuery, selectedDate) {
         filteredPatients = patients.filter { patient ->
             (searchQuery.isEmpty() || patient.name.startsWith(searchQuery, ignoreCase = true)) &&
-                    patient.visitingDate == selectedDate.replace("_", "/")  // Only display patients for today
+                    patient.visitingDate == selectedDate.replace("_", "/")  // Ensure the patient is from the selected date
         }
     }
-
 
     // Function to show DatePicker
     @SuppressLint("DefaultLocale")
