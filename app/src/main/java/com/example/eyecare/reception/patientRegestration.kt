@@ -77,14 +77,16 @@ fun PatientDetailsScreen(navController: NavController, patientId: String?) {
     val context = LocalContext.current
 
     val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
-
     val imageCaptureLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicturePreview()) { bitmap ->
         bitmap?.let {
-            // You can save the image or convert it to a URI here
-            // For this example, we just set it as an imageUri (string path) for display
-            imageUri = saveBitmapToFile(it, context).toString() // You'll need to implement this
+            // Save the bitmap to a file and get its Uri
+            val savedFile = saveBitmapToFile(it, context)
+            savedFile?.let {
+                imageUri = Uri.fromFile(savedFile).toString() // Get the Uri from the saved file
+            }
         }
     }
+
 
     LaunchedEffect(patientId) {
         val patientDocRef = db.collection("patients").document(patientId ?: "")
@@ -400,7 +402,7 @@ fun savePatientData(
     address: String,
     phone: String,
     gender: String,
-    imageUri: String?,
+    imageUri: String?,  // Handle nullable imageUri
     dateOfBirth: LocalDate?,
     visitingDate: LocalDate,
     db: FirebaseFirestore,
@@ -432,17 +434,15 @@ fun savePatientData(
                 "phone" to phone,
                 "gender" to gender,
                 "age" to age,
-                "id" to patientId
+                "id" to patientId,
             )
 
             // Only add non-nullable fields to the map
             dateOfBirth?.let {
                 patientDetails["dateOfBirth"] = it.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
             }
-
-            // Upload image to Firebase Storage and get the download URL
-            if (imageUri != null) {
-                val imageUrl = uploadImageToFirebaseStorage(imageUri, patientId)
+            imageUri?.let {
+                val imageUrl = uploadImageToFirebaseStorage(it, patientId)
                 if (imageUrl != null) {
                     patientDetails["imageUri"] = imageUrl
                 }
@@ -494,35 +494,33 @@ fun savePatientData(
 
 private suspend fun uploadImageToFirebaseStorage(imageUri: String, patientId: String): String? {
     return try {
-        val storage = FirebaseStorage.getInstance()
-        val storageRef = storage.reference.child("patient_images/$patientId.jpg")
+        val storageRef = FirebaseStorage.getInstance().reference.child("patient_images/$patientId.jpg")
+        val fileUri = Uri.parse(imageUri)
 
-        // Create a file from the URI
-        val file = Uri.parse(imageUri)
-        val uploadTask = storageRef.putFile(file).await()
-
-        // Get the download URL
-        storageRef.downloadUrl.await().toString()
+        storageRef.putFile(fileUri).await()
+        storageRef.downloadUrl.await().toString() // Return the download URL
     } catch (e: Exception) {
         Log.e("ImageUpload", "Error uploading image", e)
         null
     }
 }
 
+
 private fun saveBitmapToFile(bitmap: Bitmap, context: Context): File? {
     return try {
-        // Create a file in the app's internal storage
+        // Save the image as a file in the app's internal storage
         val file = File(context.filesDir, "image_${System.currentTimeMillis()}.jpg")
         val fos = FileOutputStream(file)
         bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos)
         fos.flush()
         fos.close()
-        file // Return the created file
+        file // Return the saved file
     } catch (e: IOException) {
         Log.e("BitmapSave", "Error saving bitmap to file", e)
         null
     }
 }
+
 
 
 
