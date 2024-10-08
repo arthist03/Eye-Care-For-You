@@ -385,7 +385,7 @@ fun newGlassDoc(navController: NavController, patientId: String) {
                                             context = context,
                                             screenType = "newGlassOpto"
                                         )
-                                        navController.navigate("doctorpatients")
+                                        navController.navigate("PreviewScreenDoc/${patientId}")
 
                                     }) {
                                         Text(text = "Save Examination")

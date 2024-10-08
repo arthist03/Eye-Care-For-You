@@ -1,6 +1,5 @@
-package com.example.eyecare.Opto
+package com.example.eyecare.HOD.glassScreenshod
 
-import android.content.ContentValues
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -8,9 +7,7 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Rect
 import android.graphics.pdf.PdfDocument
-import android.os.Build
 import android.os.Environment
-import android.provider.MediaStore
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.background
@@ -32,6 +29,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.eyecare.Opto.exportToPDF
 import com.example.eyecare.R
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
@@ -46,7 +44,7 @@ import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ExaminationDetailsScreen(navController: NavController, patientId: String) {
+fun ExaminationDetailsScreenHod(navController: NavController, patientId: String) {
     val db = FirebaseFirestore.getInstance()
 
     // State variables for patient details
@@ -187,18 +185,18 @@ fun ExaminationDetailsScreen(navController: NavController, patientId: String) {
                     renderExaminationTable("New Glass Opto", newGlassData)
 
                     Spacer(modifier = Modifier.height(16.dp))
-                    // Export to PDF button
 
-                    Row (modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween){
-                        ElevatedButton(onClick = {
-                            navController.popBackStack()
+                    // Export to PDF button
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        ElevatedButton(onClick = {navController.popBackStack()
                         }) {
-                            Text("Back")
+                            Text(text = "Back")
                         }
 
+//NOthing
                         ElevatedButton(onClick = {
                             exportToPDF(context, patientName, patientAge, visitingDate,patientId, withoutGlassData, withGlassData, newGlassData)
-                            navController.navigate("OptoPatients")
+                            navController.navigate("hodPatients")
                         }) {
                             Text(text = "Export to PDF")
                         }
@@ -207,153 +205,4 @@ fun ExaminationDetailsScreen(navController: NavController, patientId: String) {
             }
         }
     }
-}
-
-fun exportToPDF(
-    context: Context,
-    patientName: String,
-    patientAge: String,
-    visitingDate: String,
-    patientId: String,
-    withoutGlassData: Map<String, Any>?,
-    withGlassData: Map<String, Any>?,
-    newGlassData: Map<String, Any>?
-) {
-    val pdfDocument = PdfDocument()
-    val pageWidth = 595 // A4 width in pixels
-    val pageHeight = 900 // A4 height in pixels
-    val margin = 30f // Margin for top and bottom to allow for content space
-    val availableHeight = pageHeight - margin * 2 // Available space for content
-
-    var currentPageNumber = 1 // Manually track the page number
-    var pageInfo = PdfDocument.PageInfo.Builder(pageWidth, pageHeight, currentPageNumber).create()
-    var page = pdfDocument.startPage(pageInfo)
-    var canvas = page.canvas
-
-    // Paint initialization
-    val paint = Paint().apply {
-        color = android.graphics.Color.BLACK
-        textSize = 12f
-        style = Paint.Style.FILL
-        isAntiAlias = true // Enable anti-aliasing
-    }
-
-    // Function to check the page limit and create a new page if needed
-    var yPos = margin + 25f // Starting position for content
-
-    fun checkPageLimitAndCreateNewPage() {
-        if (yPos + 30f > availableHeight) { // Ensure Float comparison
-            pdfDocument.finishPage(page) // Finish the current page
-            currentPageNumber++ // Increment page number
-            pageInfo = PdfDocument.PageInfo.Builder(pageWidth, pageHeight, currentPageNumber).create() // Create a new page
-            page = pdfDocument.startPage(pageInfo)
-            canvas = page.canvas // Update canvas for the new page
-            yPos = margin + 25f // Reset yPos for new page
-        }
-    }
-
-    // Draw patient information
-    canvas.drawText("Patient Name: $patientName", 10f, yPos, paint)
-    yPos += 25f
-    canvas.drawText("Patient Age: $patientAge", 10f, yPos, paint)
-    yPos += 25f
-    canvas.drawText("Visiting Date: $visitingDate", 10f, yPos, paint)
-    yPos += 30f // Space before the first table
-
-    // Draw tables
-    checkPageLimitAndCreateNewPage() // Check if we need a new page
-    canvas.drawText("Without Glass Data", pageWidth / 2f, yPos, paint)
-    yPos += 20f
-    yPos = drawObservationTable(canvas, withoutGlassData, yPos, pageWidth, paint)
-
-    checkPageLimitAndCreateNewPage() // Check if we need a new page
-    canvas.drawText("With Glass Data", pageWidth / 2f, yPos, paint)
-    yPos += 20f
-    yPos = drawObservationTable(canvas, withGlassData, yPos, pageWidth, paint)
-
-    checkPageLimitAndCreateNewPage() // Check if we need a new page
-    canvas.drawText("New Glass Data", pageWidth / 2f, yPos, paint)
-    yPos += 20f
-    yPos = drawObservationTable(canvas, newGlassData, yPos, pageWidth, paint)
-
-    // Finish the last page
-    pdfDocument.finishPage(page)
-
-    // Save the PDF using scoped storage (Android 10+)
-    val fileName = "${patientName}_${patientId}.pdf"
-
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-        // For Android 10+ (Scoped Storage)
-        val contentValues = ContentValues().apply {
-            put(MediaStore.MediaColumns.DISPLAY_NAME, fileName)
-            put(MediaStore.MediaColumns.MIME_TYPE, "application/pdf")
-            put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS + "/PATIENT PDF")
-        }
-
-        val uri = context.contentResolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, contentValues)
-
-        uri?.let {
-            try {
-                context.contentResolver.openOutputStream(it)?.use { outputStream ->
-                    pdfDocument.writeTo(outputStream)
-                    Toast.makeText(context, "PDF exported to Downloads", Toast.LENGTH_LONG).show()
-                }
-            } catch (e: IOException) {
-                e.printStackTrace()
-                Toast.makeText(context, "Failed to export PDF", Toast.LENGTH_LONG).show()
-            }
-        }
-    } else {
-        // For Android 9 and below
-        val downloadsDir = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "PATIENT PDF")
-        if (!downloadsDir.exists()) {
-            downloadsDir.mkdirs() // Create directory if it doesn't exist
-        }
-        val filePath = "$downloadsDir/$fileName"
-        val file = File(filePath)
-
-        // Write the document to the file
-        try {
-            pdfDocument.writeTo(FileOutputStream(file))
-            Toast.makeText(context, "PDF exported to ${file.absolutePath}", Toast.LENGTH_LONG).show()
-        } catch (e: IOException) {
-            e.printStackTrace()
-            Toast.makeText(context, "Failed to export PDF", Toast.LENGTH_LONG).show()
-        }
-    }
-
-    // Close and recycle resources
-    pdfDocument.close()
-}
-
-private fun drawObservationTable(
-    canvas: Canvas,
-    data: Map<String, Any>?,
-    startY: Float,
-    pageWidth: Int,
-    paint: Paint
-): Float {
-    var currentYPosition = startY
-    val cellHeight = 20f // Height of each cell
-    val padding = 10f // Padding for the text inside the cells
-
-    // Define the width for each column
-    val columnWidth = pageWidth / 3.1f // Equal width for each column
-    val column1X = 10f  // X position for the first column (parameters)
-    val column2X = column1X + columnWidth // X position for the second column (right eye)
-    val column3X = column2X + columnWidth // X position for the third column (left eye)
-
-    // Draw table headers
-    canvas.drawText("Parameter", column1X, currentYPosition, paint)
-    canvas.drawText("Value", column2X, currentYPosition, paint)
-    currentYPosition += cellHeight // Move down for the next row
-
-    data?.forEach { (key, value) ->
-        canvas.drawText(key, column1X, currentYPosition, paint)
-        canvas.drawText(value.toString(), column2X, currentYPosition, paint)
-        currentYPosition += cellHeight // Move down for the next row
-    }
-
-    // Return updated yPos for next content, adding some space after the table
-    return currentYPosition + 20f // Add space after the table
 }

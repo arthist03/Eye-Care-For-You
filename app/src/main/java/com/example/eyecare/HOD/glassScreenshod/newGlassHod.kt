@@ -382,7 +382,7 @@ fun newGlassHod(navController: NavController, patientId: String) {
                                             context = context,
                                             screenType = "newGlassOpto"
                                         )
-                                        navController.navigate("PreviewScreen/$patientId")
+                                        navController.navigate("PreviewScreenHod/$patientId")
 
                                     }) {
                                         Text(text = "Save Examination")

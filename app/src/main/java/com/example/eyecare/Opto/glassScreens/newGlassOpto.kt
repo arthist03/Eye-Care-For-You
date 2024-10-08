@@ -23,13 +23,6 @@ import com.example.eyecare.Opto.Patient
 import com.example.eyecare.topBar.topBarId
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.SetOptions
-import kotlinx.coroutines.tasks.await
-import java.text.SimpleDateFormat
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
-import java.util.Date
-import java.util.Locale
 
 @Composable
 fun newGlassOpto(navController: NavController, patientId: String) {
@@ -389,7 +382,7 @@ fun newGlassOpto(navController: NavController, patientId: String) {
                                             context = context,
                                             screenType = "newGlassOpto"
                                         )
-                                        navController.navigate("PreviewScreen/$patientId")
+                                        navController.navigate("PreviewScreen/${patientId}")
 
                                     }) {
                                         Text(text = "Save Examination")
