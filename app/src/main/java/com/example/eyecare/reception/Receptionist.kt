@@ -1,6 +1,7 @@
 package com.example.eyecare.reception
 
 import android.Manifest
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -33,11 +34,7 @@ import com.example.eyecare.Extra.AuthViewModel
 import com.example.eyecare.topBar.topBarId
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.mlkit.vision.common.InputImage
-import com.google.mlkit.vision.text.TextRecognition
-import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import java.io.File
-import java.io.IOException
 
 @Composable
 fun PageReception(navController: NavController, authViewModel: AuthViewModel) {
@@ -108,9 +105,16 @@ fun PageReception(navController: NavController, authViewModel: AuthViewModel) {
         modifier = Modifier
             .fillMaxSize()
             .background(Brush.verticalGradient(listOf(Color(0xFFEBF5FB), Color(0xFFB3BBC4)))),
+
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        TopBar(receptionistName, receptionistPosition, navController, authViewModel)
+        topBarId(
+            fullName = receptionistName,
+            position = receptionistPosition,
+            screenName = "Patient Registration",
+            authViewModel = authViewModel,
+            navController = navController
+        )
 
         Column(
             modifier = Modifier.fillMaxSize().padding(top = 70.dp)
@@ -121,19 +125,11 @@ fun PageReception(navController: NavController, authViewModel: AuthViewModel) {
 }
 
 @Composable
-fun TopBar(receptionistName: String, receptionistPosition: String, navController: NavController, authViewModel: AuthViewModel) {
-    topBarId(
-        fullName = receptionistName,
-        position = receptionistPosition,
-        screenName = "Patient Registration",
-        authViewModel = authViewModel,
-        navController = navController
-    )
-}
-
-@Composable
 fun PatientEntryCard(searchQuery: String, onSearchQueryChange: (String) -> Unit, searchResults: List<Map<String, Any>>, navController: NavController) {
     val context = LocalContext.current
+
+    // State to store the image URI
+    var imageUri by remember { mutableStateOf<Uri?>(null) }
 
     Card(
         modifier = Modifier
@@ -157,37 +153,11 @@ fun PatientEntryCard(searchQuery: String, onSearchQueryChange: (String) -> Unit,
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            val cameraPermissionLauncher = rememberLauncherForActivityResult(
-                contract = ActivityResultContracts.RequestMultiplePermissions(),
-                onResult = { permissions ->
-                    val cameraGranted = permissions[Manifest.permission.CAMERA] ?: false
-                    val storageGranted = permissions[Manifest.permission.WRITE_EXTERNAL_STORAGE] ?: false
-                    if (cameraGranted && storageGranted) {
-                        openCameraForResult(context) { uri ->
-                            processImage(context, uri)
-                        }
-                    } else {
-                        Toast.makeText(context, "Camera and Storage permissions are required.", Toast.LENGTH_SHORT).show()
-                    }
-                }
-            )
-
             ElevatedButton(
-                onClick = {
-                    // Check current permission status before launching the request
-                    when {
-                        ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED &&
-                                ContextCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED -> {
-                            openCameraForResult(context) { uri ->
-                                processImage(context, uri)
-                            }
-                        }
-                        else -> cameraPermissionLauncher.launch(arrayOf(Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE))
-                    }
-                },
+                onClick = { navController.navigate("Aadhar") },
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF39C12))
             ) {
-                Text(text = "Capture Image", color = Color.White)
+                Text(text = "Capture Aadhar", color = Color.White)
             }
 
             Spacer(modifier = Modifier.height(20.dp))
@@ -232,38 +202,4 @@ fun PatientEntryCard(searchQuery: String, onSearchQueryChange: (String) -> Unit,
             }
         }
     }
-}
-
-// Camera-related code
-
-private const val CAMERA_REQUEST_CODE_1 = 1001
-
-fun openCameraForResult(context: Context, onResult: (Uri) -> Unit) {
-    val imageFile = File.createTempFile("image", ".jpg", context.externalCacheDir)
-    val imageUri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", imageFile)
-
-    // Launch camera intent
-    val cameraIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-    cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri)
-
-    // Check if context is an Activity to start camera intent
-    if (context is android.app.Activity) {
-        context.startActivityForResult(cameraIntent, CAMERA_REQUEST_CODE_1)
-        onResult(imageUri) // This may need to be adjusted based on actual image capture success
-    }
-}
-
-private fun processImage(context: Context, imageUri: Uri) {
-    // Implement your image processing logic here, for example, using ML Kit for text recognition
-    val inputImage = InputImage.fromFilePath(context, imageUri)
-    val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
-
-    recognizer.process(inputImage)
-        .addOnSuccessListener { visionText ->
-            // Handle recognized text
-            Log.d("TextRecognition", "Recognized text: ${visionText.text}")
-        }
-        .addOnFailureListener { e ->
-            Log.e("TextRecognition", "Text recognition failed: ${e.message}")
-        }
 }

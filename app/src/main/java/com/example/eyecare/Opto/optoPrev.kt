@@ -37,6 +37,14 @@ import kotlinx.coroutines.tasks.await
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import android.content.Context
+import android.graphics.pdf.PdfDocument
+import android.os.Environment
+import android.widget.Toast
+import androidx.core.content.ContextCompat
+import androidx.glance.LocalContext
+import java.io.File
+import java.io.FileOutputStream
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -53,7 +61,7 @@ fun ExaminationDetailsScreen(navController: NavController, patientId: String) {
     var withGlassData by remember { mutableStateOf<Map<String, Any>?>(null) }
     var newGlassData by remember { mutableStateOf<Map<String, Any>?>(null) }
     var errorMessage by remember { mutableStateOf("") }
-
+val context = LocalContext.current
     // Get current date in the required format
     val currentVisitingDate = SimpleDateFormat("dd_MM_yyyy", Locale.getDefault()).format(Date())
 
@@ -104,7 +112,9 @@ fun ExaminationDetailsScreen(navController: NavController, patientId: String) {
             TopAppBar(title = { Text("Examination Summary") })
         }
     ) { paddingValues ->
-        Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
+        Box(modifier = Modifier
+            .fillMaxSize()
+            .padding(paddingValues)) {
             if (errorMessage.isNotEmpty()) {
                 Text(text = errorMessage, color = Color.Red, modifier = Modifier.align(Alignment.Center))
                 ElevatedButton(onClick = {
@@ -113,7 +123,9 @@ fun ExaminationDetailsScreen(navController: NavController, patientId: String) {
                     Text(text = "Back")
                 }
             } else {
-                Column(modifier = Modifier.padding(16.dp).verticalScroll(rememberScrollState())) {
+                Column(modifier = Modifier
+                    .padding(16.dp)
+                    .verticalScroll(rememberScrollState())) {
 
                     // Display Patient Details
                     Column(modifier = Modifier.fillMaxWidth()) {
@@ -236,7 +248,7 @@ fun ExaminationDetailsScreen(navController: NavController, patientId: String) {
                             Text(text = "Back")
                         }
                         ElevatedButton(onClick = {
-                            // Export functionality to be implemented
+                            exportToPDF(context, patientName, patientAge, visitingDate, withoutGlassData, withGlassData, newGlassData)
                         }) {
                             Text(text = "Export")
                         }
@@ -251,5 +263,67 @@ fun ExaminationDetailsScreen(navController: NavController, patientId: String) {
                 }
             }
         }
+    }
+}
+
+private fun exportToPDF(context: Context, patientName: String, patientAge: String, visitingDate: String,
+                        withoutGlassData: Map<String, Any>?, withGlassData: Map<String, Any>?, newGlassData: Map<String, Any>?) {
+    // Create a PDF document
+    val pdfDocument = PdfDocument()
+    val pageInfo = PdfDocument.PageInfo.Builder(595, 842, 1).create() // A4 size
+    val page = pdfDocument.startPage(pageInfo)
+
+    val canvas = page.canvas
+    val paint = android.graphics.Paint()
+    paint.textSize = 12f
+
+    // Add content to the PDF
+    var yPos = 25 // Starting position
+    canvas.drawText("Examination Summary", 10f, yPos.toFloat(), paint)
+    yPos += 20
+    canvas.drawText("Patient Name: $patientName", 10f, yPos.toFloat(), paint)
+    yPos += 20
+    canvas.drawText("Patient Age: $patientAge", 10f, yPos.toFloat(), paint)
+    yPos += 20
+    canvas.drawText("Visiting Date: $visitingDate", 10f, yPos.toFloat(), paint)
+    yPos += 20
+
+    // Add without glass data
+    canvas.drawText("Without Glass Data:", 10f, yPos.toFloat(), paint)
+    yPos += 20
+    withoutGlassData?.forEach { (key, value) ->
+        canvas.drawText("$key: $value", 10f, yPos.toFloat(), paint)
+        yPos += 20
+    }
+
+    // Add with glass data
+    canvas.drawText("With Glass Data:", 10f, yPos.toFloat(), paint)
+    yPos += 20
+    withGlassData?.forEach { (key, value) ->
+        canvas.drawText("$key: $value", 10f, yPos.toFloat(), paint)
+        yPos += 20
+    }
+
+    // Add new glass data
+    canvas.drawText("New Glass Data:", 10f, yPos.toFloat(), paint)
+    yPos += 20
+    newGlassData?.forEach { (key, value) ->
+        canvas.drawText("$key: $value", 10f, yPos.toFloat(), paint)
+        yPos += 20
+    }
+
+    pdfDocument.finishPage(page)
+
+    // Create a PDF file in the external storage
+    val pdfFile = File(context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS), "${patientName}.pdf")
+    try {
+        pdfDocument.writeTo(FileOutputStream(pdfFile))
+        // Notify user of successful export (could be a Toast or Snackbar)
+        Toast.makeText(context, "PDF exported to ${pdfFile.absolutePath}", Toast.LENGTH_LONG).show()
+    } catch (e: Exception) {
+        e.printStackTrace()
+        Toast.makeText(context, "Error exporting PDF: ${e.message}", Toast.LENGTH_LONG).show()
+    } finally {
+        pdfDocument.close()
     }
 }

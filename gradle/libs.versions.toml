@@ -1,11 +1,19 @@
 [versions]
+activityKtx = "1.9.2"
 agp = "8.7.0"
+androidxNavigationCompose = "2.4.0"
+androidxUi = "1.0.0"
 cameraCamera2 = "1.1.0-alpha11"
 cameraCore = "1.3.4"
 cameraLifecycle = "1.1.0-alpha11"
 cameraView = "1.0.0-alpha31"
 coilCompose = "2.4.0"
+converterGson = "2.9.0"
+firebaseAuthKtx = "23.0.0"
+firebaseFirestoreKtx = "25.1.0"
 gradle = "8.5.2"
+gson = "2.10.1"
+guava = "30.1.1-android"
 itext7Core = "7.1.17"
 bcprovJdk18on = "1.78.1"
 kotlin = "1.9.0"
@@ -13,6 +21,7 @@ coreKtx = "1.13.1"
 junit = "4.13.2"
 junitVersion = "1.2.1"
 espressoCore = "3.6.1"
+kotlinxCoroutinesAndroid = "1.8.1"
 lifecycleRuntimeKtx = "2.8.6"
 activityCompose = "1.9.2"
 composeBom = "2024.09.03"
@@ -22,21 +31,26 @@ firebaseAuth = "23.0.0"
 firebaseFirestore = "25.1.0"
 firebaseDatabase = "21.0.0"
 leanback = "1.0.0"
+material = "1.7.3"
 navigationComposeVersion = "2.6.0"
 pdfbox = "2.0.29"
 navigationRuntimeKtx = "2.8.2"
 navigationCompose = "2.8.2"
+playServicesMlkitTextRecognition = "19.0.1"
+retrofit = "2.9.0"
 runtimeLivedata = "1.7.3"
 identityJvm = "202408.1"
 places = "4.0.0"
 glance = "1.1.0"
 firebaseCrashlyticsBuildtools = "3.0.2"
 textRecognition = "16.0.1"
+textRecognitionVersion = "2.2.0"
 ui = "1.7.3"
 firebaseStorageKtx = "21.0.1"
 uiVersion = "1.0.5"
 
 [libraries]
+androidx-activity-ktx = { module = "androidx.activity:activity-ktx", version.ref = "activityKtx" }
 androidx-camera-camera2 = { module = "androidx.camera:camera-camera2", version.ref = "cameraCore" }
 androidx-camera-camera2-v110alpha11 = { module = "androidx.camera:camera-camera2", version.ref = "cameraCamera2" }
 androidx-camera-core = { module = "androidx.camera:camera-core", version.ref = "cameraCore" }
@@ -45,11 +59,19 @@ androidx-camera-lifecycle-v110alpha11 = { module = "androidx.camera:camera-lifec
 androidx-camera-view = { module = "androidx.camera:camera-view", version.ref = "cameraCore" }
 androidx-camera-view-v100alpha31 = { module = "androidx.camera:camera-view", version.ref = "cameraView" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-material = { module = "androidx.compose.material:material", version.ref = "material" }
 androidx-material-icons-extended = { module = "androidx.compose.material:material-icons-extended" }
+androidx-navigation-compose-v240 = { module = "androidx.navigation:navigation-compose", version.ref = "androidxNavigationCompose" }
+androidx-ui-v100 = { module = "androidx.compose.ui:ui", version.ref = "androidxUi" }
 androidx-ui-v105 = { module = "androidx.compose.ui:ui", version.ref = "uiVersion" }
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilCompose" }
+converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "converterGson" }
+firebase-auth-ktx = { module = "com.google.firebase:firebase-auth-ktx", version.ref = "firebaseAuthKtx" }
+firebase-firestore-ktx = { module = "com.google.firebase:firebase-firestore-ktx", version.ref = "firebaseFirestoreKtx" }
 google-firebase-storage-ktx = { module = "com.google.firebase:firebase-storage-ktx" }
 gradle = { module = "com.android.tools.build:gradle", version.ref = "gradle" }
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+guava = { module = "com.google.guava:guava", version.ref = "guava" }
 itext7-core = { module = "com.itextpdf:itext7-core", version.ref = "itext7Core" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
@@ -73,12 +95,16 @@ androidx-navigation-runtime-ktx = { group = "androidx.navigation", name = "navig
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
 androidx-runtime-livedata = { group = "androidx.compose.runtime", name = "runtime-livedata", version.ref = "runtimeLivedata" }
 identity-jvm = { group = "com.android.identity", name = "identity-jvm", version.ref = "identityJvm" }
+kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinxCoroutinesAndroid" }
 material-icons-extended = { module = "androidx.compose.material:material-icons-extended" }
 pdfbox = { module = "org.apache.pdfbox:pdfbox", version.ref = "pdfbox" }
 places = { group = "com.google.android.libraries.places", name = "places", version.ref = "places" }
 androidx-glance = { group = "androidx.glance", name = "glance", version.ref = "glance" }
 firebase-crashlytics-buildtools = { group = "com.google.firebase", name = "firebase-crashlytics-buildtools", version.ref = "firebaseCrashlyticsBuildtools" }
+play-services-mlkit-text-recognition = { module = "com.google.android.gms:play-services-mlkit-text-recognition", version.ref = "playServicesMlkitTextRecognition" }
+retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
 text-recognition = { module = "com.google.mlkit:text-recognition", version.ref = "textRecognition" }
+text-recognition-v220 = { module = "com.google.mlkit:text-recognition", version.ref = "textRecognitionVersion" }
 ui = { module = "androidx.compose.ui:ui", version.ref = "ui" }
 firebase-storage-ktx = { group = "com.google.firebase", name = "firebase-storage-ktx", version.ref = "firebaseStorageKtx" }
 

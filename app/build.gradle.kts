@@ -30,19 +30,24 @@ android {
             )
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
     }
+
     kotlinOptions {
         jvmTarget = "1.8"
     }
+
     buildFeatures {
         compose = true
     }
+
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.1"
     }
+
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
@@ -58,12 +63,11 @@ android {
 }
 
 dependencies {
-
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
-    implementation (libs.pdfbox)
+    implementation(libs.pdfbox)
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
@@ -78,10 +82,9 @@ dependencies {
     implementation(libs.androidx.runtime.livedata)
     implementation(libs.identity.jvm)
     implementation(libs.places)
-    implementation (libs.coil.compose)
+    implementation(libs.coil.compose)
     implementation(libs.androidx.glance)
     implementation(libs.material.icons.extended)
-    implementation(libs.androidx.material.icons.extended)
     implementation(libs.firebase.crashlytics.buildtools)
     implementation(libs.firebase.storage.ktx)
     testImplementation(libs.junit)
@@ -91,22 +94,45 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
-    dependencies {
-        implementation("org.bouncycastle:bcprov-jdk18on:1.78.1") {
-            exclude(group = "org.bouncycastle", module = "bcprov-jdk15on")
-        }
+
+    implementation("org.bouncycastle:bcprov-jdk18on:1.78.1") {
+        exclude(group = "org.bouncycastle", module = "bcprov-jdk15on")
     }
-    implementation (libs.androidx.camera.core)
-    implementation (libs.androidx.camera.camera2)
-    implementation (libs.androidx.camera.lifecycle)
-    implementation (libs.androidx.camera.view)
-    implementation (libs.text.recognition)
 
-    implementation (libs.google.firebase.storage.ktx)
-    implementation (libs.androidx.camera.camera2.v110alpha11)
-    implementation (libs.androidx.camera.lifecycle.v110alpha11)
-    implementation (libs.androidx.camera.view.v100alpha31)
-    implementation (libs.androidx.ui.v105)
+    // CameraX dependencies
+    implementation(libs.androidx.camera.core)
+    implementation(libs.androidx.camera.camera2)
+    implementation(libs.androidx.camera.lifecycle)
+    implementation(libs.androidx.camera.view)
 
+    // Text Recognition dependencies
+    implementation(libs.text.recognition)
+    implementation(libs.play.services.mlkit.text.recognition)
+
+    // Retrofit dependencies
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)
+
+    // Gson and Coroutine dependencies
+    implementation(libs.gson)
+    implementation(libs.kotlinx.coroutines.android)
+
+    // Additional dependencies
+    implementation(libs.androidx.activity.ktx)
+    implementation(libs.androidx.navigation.compose.v240)
+    implementation(libs.firebase.auth.ktx)
+    implementation(libs.firebase.firestore.ktx)
+    implementation(libs.androidx.camera.camera2.v110alpha11)
+    implementation(libs.androidx.camera.lifecycle.v110alpha11)
+    implementation(libs.androidx.camera.view.v100alpha31)
+    implementation(libs.androidx.ui.v105)
+    implementation(libs.androidx.ui.v100)
+
+    // Suppressing Gradle warnings for certain dependencies
+    //noinspection UseTomlInstead
+    implementation(libs.androidx.material)
+    //noinspection UseTomlInstead,GradleDependency
+    implementation("androidx.compose.ui:ui-tooling:1.7.3")
+    implementation ("com.google.guava:guava:32.1.3-android")
 
 }
