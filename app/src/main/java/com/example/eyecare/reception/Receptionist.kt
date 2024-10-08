@@ -1,6 +1,14 @@
 package com.example.eyecare.reception
 
+import android.Manifest
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
+import android.provider.MediaStore
+import android.util.Log
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -15,14 +23,19 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.FileProvider
 import androidx.navigation.NavController
 import com.example.eyecare.Extra.AuthViewModel
 import com.example.eyecare.topBar.topBarId
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.mlkit.vision.common.InputImage
+import com.google.mlkit.vision.text.TextRecognition
+import com.google.mlkit.vision.text.latin.TextRecognizerOptions
+import java.io.File
+import java.io.IOException
 
 @Composable
 fun PageReception(navController: NavController, authViewModel: AuthViewModel) {
@@ -53,16 +66,13 @@ fun PageReception(navController: NavController, authViewModel: AuthViewModel) {
 
     fun performSearch(query: String) {
         if (query.isNotBlank()) {
-            // Perform search on multiple fields: name, phone, and id
             db.collection("patients")
                 .whereGreaterThanOrEqualTo("name", query)
                 .whereLessThanOrEqualTo("name", query + "\uf8ff")
                 .get()
                 .addOnSuccessListener { documents ->
-                    // Filter results locally to include searches by phone and ID
                     val nameResults = documents.map { it.data }
 
-                    // Perform additional search on phone
                     db.collection("patients")
                         .whereGreaterThanOrEqualTo("phone", query)
                         .whereLessThanOrEqualTo("phone", query + "\uf8ff")
@@ -70,15 +80,12 @@ fun PageReception(navController: NavController, authViewModel: AuthViewModel) {
                         .addOnSuccessListener { phoneDocuments ->
                             val phoneResults = phoneDocuments.map { it.data }
 
-                            // Perform additional search on ID
                             db.collection("patients")
                                 .whereGreaterThanOrEqualTo("id", query)
                                 .whereLessThanOrEqualTo("id", query + "\uf8ff")
                                 .get()
                                 .addOnSuccessListener { idDocuments ->
                                     val idResults = idDocuments.map { it.data }
-
-                                    // Combine all search results and remove duplicates by patient ID
                                     searchResults = (nameResults + phoneResults + idResults).distinctBy { it["id"] }
                                 }
                                 .addOnFailureListener {
@@ -101,107 +108,167 @@ fun PageReception(navController: NavController, authViewModel: AuthViewModel) {
             .background(Brush.verticalGradient(listOf(Color(0xFFEBF5FB), Color(0xFFB3BBC4)))),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-            topBarId(
-                fullName = receptionistName,
-                position = receptionistPosition,
-                screenName = "Patient Registration",
-                authViewModel = AuthViewModel(),
-                navController = navController
-            )
-
+        TopBar(receptionistName, receptionistPosition, navController, authViewModel)
 
         Column(
-            modifier = Modifier.fillMaxSize()
-                .padding(top=70.dp)
+            modifier = Modifier.fillMaxSize().padding(top = 70.dp)
         ) {
+            PatientEntryCard(searchQuery, { searchQuery = it; performSearch(it) }, searchResults, navController)
+        }
+    }
+}
 
+@Composable
+fun TopBar(receptionistName: String, receptionistPosition: String, navController: NavController, authViewModel: AuthViewModel) {
+    topBarId(
+        fullName = receptionistName,
+        position = receptionistPosition,
+        screenName = "Patient Registration",
+        authViewModel = authViewModel,
+        navController = navController
+    )
+}
 
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                elevation = CardDefaults.elevatedCardElevation(12.dp), // Increased elevation
-                shape = RoundedCornerShape(15.dp)
+@Composable
+fun PatientEntryCard(searchQuery: String, onSearchQueryChange: (String) -> Unit, searchResults: List<Map<String, Any>>, navController: NavController) {
+    val context = LocalContext.current
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        elevation = CardDefaults.elevatedCardElevation(12.dp),
+        shape = RoundedCornerShape(15.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .background(Color.White)
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            ElevatedButton(
+                onClick = { navController.navigate("patientDetails/{patientId}") },
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF39C12))
             ) {
-                Column(
-                    modifier = Modifier
-                        .background(Color.White)
-                        .padding(24.dp), // Increased padding
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
+                Text(text = "Enter Patient Details Manually", color = Color.White)
+            }
 
+            Spacer(modifier = Modifier.height(20.dp))
 
-                    // Enter patient details button
-                    ElevatedButton(
-                        onClick = { navController.navigate("patientDetails/{patientId}") },
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF39C12)) // Updated parameter
-                    ) {
-                        Text(text = "Enter Patient Details Manually", color = Color.White)
+            val cameraPermissionLauncher = rememberLauncherForActivityResult(
+                contract = ActivityResultContracts.RequestMultiplePermissions(),
+                onResult = { permissions ->
+                    val cameraGranted = permissions[Manifest.permission.CAMERA] ?: false
+                    val storageGranted = permissions[Manifest.permission.WRITE_EXTERNAL_STORAGE] ?: false
+                    if (cameraGranted && storageGranted) {
+                        openCameraForResult(context) { uri ->
+                            processImage(context, uri)
+                        }
+                    } else {
+                        Toast.makeText(context, "Camera and Storage permissions are required.", Toast.LENGTH_SHORT).show()
                     }
+                }
+            )
 
-                    Spacer(modifier = Modifier.height(20.dp))
+            ElevatedButton(
+                onClick = { cameraPermissionLauncher.launch(arrayOf(Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE)) },
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF39C12))
+            ) {
+                Text(text = "Capture Image", color = Color.White)
+            }
 
-                    // Capture image button
-                    ElevatedButton(
-                        onClick = { /* handle capture image */ },
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF39C12)) // Updated parameter
-                    ) {
-                        Text(text = "Capture Image", color = Color.White)
-                    }
+            Spacer(modifier = Modifier.height(20.dp))
 
-                    Spacer(modifier = Modifier.height(20.dp))
+            OutlinedTextField(
+                value = searchQuery,
+                onValueChange = onSearchQueryChange,
+                label = { Text("Search by Name, Phone, or ID") },
+                modifier = Modifier.fillMaxWidth(),
+                textStyle = TextStyle(fontSize = 16.sp)
+            )
 
-                    // Search bar
-                    OutlinedTextField(
-                        value = searchQuery,
-                        onValueChange = {
-                            searchQuery = it
-                            performSearch(it)
-                        },
-                        label = { Text("Search by Name, Phone, or ID") },
-                        modifier = Modifier.fillMaxWidth(),
-                        textStyle = TextStyle(fontSize = 16.sp)
-                    )
+            Spacer(modifier = Modifier.height(20.dp))
 
-                    Spacer(modifier = Modifier.height(20.dp))
+            LazyColumn {
+                items(searchResults) { result ->
+                    val id = result["id"] as? String ?: ""
+                    val patientName = result["name"] as? String ?: ""
 
-                    LazyColumn {
-                        items(searchResults) { result ->
-                            val id = result["id"] as? String ?: ""
-                            val patientName = result["name"] as? String ?: ""
-
-                            Card(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(8.dp)
-                                    .clickable {
-                                        if (id.isNotEmpty()) {
-                                            navController.navigate("patientDetails/$id")
-                                        } else {
-                                            Toast.makeText(context, "Invalid Patient ID", Toast.LENGTH_SHORT).show()
-                                        }
-                                    },
-                                elevation = CardDefaults.elevatedCardElevation(8.dp)
-                            ) {
-                                Column(
-                                    modifier = Modifier
-                                        .padding(16.dp)
-                                ) {
-                                    Text(text = "Name: $patientName", fontSize = 16.sp)
-                                    Text(text = "Phone: ${result["phone"]}", fontSize = 16.sp)
-                                    Text(text = "ID: $id", fontSize = 16.sp)
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(8.dp)
+                            .clickable {
+                                if (id.isNotEmpty()) {
+                                    navController.navigate("patientDetails/$id")
+                                } else {
+                                    Toast.makeText(context, "Invalid Patient ID", Toast.LENGTH_SHORT).show()
                                 }
-                            }
+                            },
+                        elevation = CardDefaults.elevatedCardElevation(8.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(16.dp)
+                        ) {
+                            Text(text = "Name: $patientName", fontSize = 16.sp)
+                            Text(text = "Phone: ${result["phone"]}", fontSize = 16.sp)
+                            Text(text = "ID: $id", fontSize = 16.sp)
                         }
                     }
-
-
-
-
-
-
                 }
             }
         }
     }
+}
+
+// Camera-related code
+
+private const val CAMERA_REQUEST_CODE_1 = 1001
+
+fun openCameraForResult(context: Context, onResult: (Uri) -> Unit) {
+    val imageFile = File.createTempFile("image", ".jpg", context.externalCacheDir)
+    val imageUri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", imageFile)
+
+    // Launch camera intent
+    val cameraIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+    cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri)
+
+    // Check if context is an Activity to start camera intent
+    if (context is android.app.Activity) {
+        context.startActivityForResult(cameraIntent, CAMERA_REQUEST_CODE_1)
+        onResult(imageUri) // This may need to be adjusted based on actual image capture success
+    }
+}
+
+private fun processImage(context: Context, imageUri: Uri) {
+    val image: InputImage
+    try {
+        image = InputImage.fromFilePath(context, imageUri)
+        val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
+
+        recognizer.process(image)
+            .addOnSuccessListener { visionText ->
+                parseDetails(visionText.text)
+            }
+            .addOnFailureListener { e ->
+                Log.e("ImageRecognition", "Error: ${e.message}")
+            }
+    } catch (e: IOException) {
+        Log.e("ImageRecognition", "Error loading image: ${e.message}")
+    }
+}
+
+private fun parseDetails(text: String) {
+    // Regular expressions to extract relevant details
+    val namePattern = "Name: (.+)".toRegex()
+    val idPattern = "ID: (\\d+)".toRegex()
+
+    val nameMatch = namePattern.find(text)
+    val idMatch = idPattern.find(text)
+
+    val extractedName = nameMatch?.groupValues?.get(1) ?: "Unknown"
+    val extractedId = idMatch?.groupValues?.get(1) ?: "Unknown"
+
+    // Use extracted data here
+    Log.d("ParsedDetails", "Name: $extractedName, ID: $extractedId")
 }

@@ -1,9 +1,15 @@
 package com.example.eyecare.reception
 
 import android.app.DatePickerDialog
+import android.content.Context
+import android.graphics.Bitmap
+import android.net.Uri
 import android.util.Log
 import android.widget.DatePicker
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.result.launch
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -35,11 +41,15 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
+import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
+import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
 import java.time.LocalDate
 import java.time.Period
 import java.time.format.DateTimeFormatter
@@ -65,6 +75,14 @@ fun PatientDetailsScreen(navController: NavController, patientId: String?) {
     val context = LocalContext.current
 
     val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
+
+    val imageCaptureLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicturePreview()) { bitmap ->
+        bitmap?.let {
+            // You can save the image or convert it to a URI here
+            // For this example, we just set it as an imageUri (string path) for display
+            imageUri = saveBitmapToFile(it, context).toString() // You'll need to implement this
+        }
+    }
 
     LaunchedEffect(patientId) {
         val patientDocRef = db.collection("patients").document(patientId ?: "")
@@ -293,6 +311,7 @@ fun PatientDetailsScreen(navController: NavController, patientId: String?) {
                         Text(text = "Other")
                     }
 
+
                     Spacer(modifier = Modifier.height(12.dp))
 
                     // Display profile image if available
@@ -307,10 +326,12 @@ fun PatientDetailsScreen(navController: NavController, patientId: String?) {
                                 .background(Color.White)
                         )
                     } else {
-                        Text(
-                            text = "No profile image selected",
-                            modifier = Modifier.padding(8.dp)
-                        )
+                        ElevatedButton(
+                            onClick = { imageCaptureLauncher.launch() },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text("Capture Image")
+                        }
                     }
 
                     Spacer(modifier = Modifier.height(12.dp))
@@ -403,14 +424,19 @@ fun savePatientData(
                 "gender" to gender,
                 "age" to age,
                 "id" to patientId
-                )
+            )
 
             // Only add non-nullable fields to the map
             dateOfBirth?.let {
                 patientDetails["dateOfBirth"] = it.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
             }
-            imageUri?.let {
-                patientDetails["imageUri"] = it
+
+            // Upload image to Firebase Storage and get the download URL
+            if (imageUri != null) {
+                val imageUrl = uploadImageToFirebaseStorage(imageUri, patientId)
+                if (imageUrl != null) {
+                    patientDetails["imageUri"] = imageUrl
+                }
             }
 
             // Save patient details in the main document
@@ -456,6 +482,40 @@ fun savePatientData(
         }
     }
 }
+
+private suspend fun uploadImageToFirebaseStorage(imageUri: String, patientId: String): String? {
+    return try {
+        val storage = FirebaseStorage.getInstance()
+        val storageRef = storage.reference.child("patient_images/$patientId.jpg")
+
+        // Create a file from the URI
+        val file = Uri.parse(imageUri)
+        val uploadTask = storageRef.putFile(file).await()
+
+        // Get the download URL
+        storageRef.downloadUrl.await().toString()
+    } catch (e: Exception) {
+        Log.e("ImageUpload", "Error uploading image", e)
+        null
+    }
+}
+
+private fun saveBitmapToFile(bitmap: Bitmap, context: Context): File? {
+    return try {
+        // Create a file in the app's internal storage
+        val file = File(context.filesDir, "image_${System.currentTimeMillis()}.jpg")
+        val fos = FileOutputStream(file)
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos)
+        fos.flush()
+        fos.close()
+        file // Return the created file
+    } catch (e: IOException) {
+        Log.e("BitmapSave", "Error saving bitmap to file", e)
+        null
+    }
+}
+
+
 
 suspend fun assignPatientToOptometristWithDate(
     db: FirebaseFirestore,

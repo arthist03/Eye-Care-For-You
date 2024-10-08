@@ -83,6 +83,7 @@ dependencies {
     implementation(libs.material.icons.extended)
     implementation(libs.androidx.material.icons.extended)
     implementation(libs.firebase.crashlytics.buildtools)
+    implementation(libs.firebase.storage.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -95,5 +96,10 @@ dependencies {
             exclude(group = "org.bouncycastle", module = "bcprov-jdk15on")
         }
     }
+    implementation (libs.androidx.camera.core)
+    implementation (libs.androidx.camera.camera2)
+    implementation (libs.androidx.camera.lifecycle)
+    implementation (libs.androidx.camera.view)
+    implementation (libs.text.recognition)
 
 }
