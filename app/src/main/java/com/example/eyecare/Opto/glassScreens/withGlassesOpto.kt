@@ -361,6 +361,7 @@ fun withGlassOpto(navController: NavController, patientId: String) {
 
                             }
 
+
                             Spacer(modifier = Modifier.height(20.dp))
 
                             // Save and navigation buttons

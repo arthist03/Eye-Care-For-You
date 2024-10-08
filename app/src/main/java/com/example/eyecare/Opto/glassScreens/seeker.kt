@@ -1,6 +1,8 @@
 package com.example.eyecare.Opto.glassScreens
 
 import android.graphics.Paint
+import android.os.VibrationEffect
+import android.os.Vibrator
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGestures
@@ -15,9 +17,13 @@ import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlin.math.cos
+import kotlin.math.sin
 
 @Composable
 fun SeekerWithTextField() {
@@ -32,11 +38,8 @@ fun SeekerWithTextField() {
 
     Box(
         modifier = Modifier
-
             .fillMaxWidth()
-
             .padding(16.dp),
-
         contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -45,7 +48,7 @@ fun SeekerWithTextField() {
                     value = textFieldValue,
                     onValueChange = { newValue ->
                         val intValue = newValue.toIntOrNull()
-                        if (intValue != null && intValue in 0..180) {
+                        if (intValue != null && intValue % 5 == 0 && intValue in 0..180) {
                             seekerValue = intValue
                         }
                         textFieldValue = newValue // Allow empty value as well
@@ -89,6 +92,9 @@ fun CustomSemiCircularSeeker(
 ) {
     var circleCenter by remember { mutableStateOf(Offset.Zero) }
     var positionValue by remember { mutableStateOf(initialValue) }
+    var highlightedMarker by remember { mutableStateOf(-1) } // Track highlighted marker
+
+    val hapticFeedback = LocalHapticFeedback.current
 
     // Update positionValue when initialValue changes
     LaunchedEffect(initialValue) {
@@ -100,7 +106,21 @@ fun CustomSemiCircularSeeker(
             .pointerInput(Unit) {
                 detectDragGestures { change, _ ->
                     val touchAngle = calculateTouchAngle(change.position, circleCenter, circleRadius)
-                    val newPosition = ((touchAngle / 180f) * (maxValue - minValue) + minValue).toInt()
+
+                    // Snap to nearest 5 degrees for the seeker
+                    val stepSize = 5
+                    val newPosition = ((touchAngle / 180f) * (maxValue - minValue) + minValue)
+                        .toInt()
+                        .let { (it / stepSize) * stepSize } // Snap to the nearest 5
+
+                    // Update highlighted marker based on new position
+                    highlightedMarker = (newPosition / 15).coerceIn(0, (maxValue / 15))
+
+                    // Trigger haptic feedback only on value change
+                    if (newPosition != positionValue) {
+                        hapticFeedback.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                    }
+
                     positionValue = newPosition.coerceIn(minValue, maxValue)
                     onPositionChange(positionValue)
                 }
@@ -120,7 +140,7 @@ fun CustomSemiCircularSeeker(
                 useCenter = false,
                 style = Stroke(width = circleThickness, cap = StrokeCap.Round),
                 size = Size(width = circleRadius * 5f, height = circleRadius * 5f),
-                topLeft = Offset((circleRadius) , (circleRadius))
+                topLeft = Offset((circleRadius), (circleRadius))
             )
 
             // Foreground arc
@@ -131,7 +151,7 @@ fun CustomSemiCircularSeeker(
                 useCenter = false,
                 style = Stroke(width = circleThickness * 1.5f, cap = StrokeCap.Round),
                 size = Size(width = circleRadius * 5f, height = circleRadius * 5f),
-                topLeft = Offset((circleRadius) , (circleRadius))
+                topLeft = Offset((circleRadius), (circleRadius))
             )
 
             // Draw the current value in the center
@@ -149,6 +169,23 @@ fun CustomSemiCircularSeeker(
                         }
                     )
                 }
+            }
+
+            // Draw markers around the seeker at every 15 degrees
+            for (value in 0..180 step 15) {
+                val angle = Math.toRadians((180 - value).toDouble()).toFloat() // Convert to radians
+                val x = (circleCenter.x + (circleRadius * 3f) * cos(angle)).toFloat() // Position for the marker
+                val y = (circleCenter.y - (circleRadius * 3f) * sin(angle)).toFloat() // Position for the marker
+
+                // Check if the current marker should be visible
+                val isMarkerVisible = highlightedMarker == (value / 15)
+
+                // Draw marker with visibility based on user position
+                drawCircle(
+                    color = primaryColor,
+                    radius = if (isMarkerVisible) 8.dp.toPx() else 0f, // Radius is 0 when not visible
+                    center = Offset(x, y)
+                )
             }
         }
     }
