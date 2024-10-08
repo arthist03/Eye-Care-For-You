@@ -29,7 +29,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -38,32 +37,44 @@ import androidx.navigation.NavController
 import com.example.eyecare.Extra.AuthState
 import com.example.eyecare.Extra.AuthViewModel
 import com.google.firebase.firestore.FirebaseFirestore
-import kotlinx.coroutines.tasks.await
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SignUpScreen(navController: NavController, authViewModel: AuthViewModel, userId: String?) {
+fun SignUpScreen(navController: NavController, authViewModel: AuthViewModel,userId:String) {
     var email by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
     var confirmPassword by rememberSaveable { mutableStateOf("") }
     var name by rememberSaveable { mutableStateOf("") }
-    var phone by remember { mutableStateOf("") }
+    var phone by rememberSaveable { mutableStateOf("") }
     var selectedRole by rememberSaveable { mutableStateOf("") }
     var selectedTitle by rememberSaveable { mutableStateOf("Mr.") }
     var passwordStrength by remember { mutableStateOf(PasswordStrength.Weak) }
     var passwordsMatch by remember { mutableStateOf(true) }
-
+    val db = FirebaseFirestore.getInstance()
 
 
     var roleDropdownExpanded by remember { mutableStateOf(false) }
     var titleDropdownExpanded by remember { mutableStateOf(false) }
 
-    var role = listOf("HOD", "Optometrist", "Doctor", "Receptionist")
+    val role = listOf("HOD", "Optometrist", "Doctor", "Receptionist")
     var title = listOf("Mr.", "Mrs.", "Ms.", "Dr.")
     val authState = authViewModel.authState.observeAsState()
     val context = LocalContext.current
-    val db = FirebaseFirestore.getInstance()
 
+//    LaunchedEffect(authState.value) {
+//        when (authState.value) {
+//            is AuthState.RedirectToHOD -> navController.navigate("hodPatients")
+//            is AuthState.RedirectToDoctor -> navController.navigate("mode")
+//            is AuthState.RedirectToOptometrist -> navController.navigate("OptoPatients")
+//            is AuthState.RedirectToReceptionist -> navController.navigate("receptionistScreen")
+//            is AuthState.Error -> Toast.makeText(
+//                context,
+//                (authState.value as AuthState.Error).message,
+//                Toast.LENGTH_SHORT
+//            ).show()
+//            else -> Unit
+//        }
+//    }
 
     LaunchedEffect(userId) {
         val userDocRef = db.collection("users").document(userId ?: "")
@@ -85,22 +96,6 @@ fun SignUpScreen(navController: NavController, authViewModel: AuthViewModel, use
         }
 
     }
-
-
-//    LaunchedEffect(authState.value) {
-//        when (authState.value) {
-//            is AuthState.RedirectToHOD -> navController.navigate("hodScreen")
-//            is AuthState.RedirectToDoctor -> navController.navigate("doctorScreen")
-//            is AuthState.RedirectToOptometrist -> navController.navigate("OptoPatients")
-//            is AuthState.RedirectToReceptionist -> navController.navigate("receptionistScreen")
-//            is AuthState.Error -> Toast.makeText(
-//                context,
-//                (authState.value as AuthState.Error).message,
-//                Toast.LENGTH_SHORT
-//            ).show()
-//            else -> Unit
-//        }
-//    }
 
 
     fun checkPasswordStrength(password: String): PasswordStrength {
@@ -152,11 +147,11 @@ fun SignUpScreen(navController: NavController, authViewModel: AuthViewModel, use
                     tint = Color.Black,
                     modifier = Modifier
                         .size(30.dp)
-                        .clickable { navController.navigate("adminPage") }
+                        .clickable { navController.navigate("home") }
                 )
 
                 Text(
-                    text = "Add User",
+                    text = "Sign Up",
                     color = Color.Black,
                     fontWeight = FontWeight.Bold,
                     fontSize = 40.sp,
@@ -170,112 +165,112 @@ fun SignUpScreen(navController: NavController, authViewModel: AuthViewModel, use
 
 
 
-                OutlinedTextField(
-                    value = email,
-                    onValueChange = { email = it },
-                    label = { Text("Email") },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(shape = RoundedCornerShape(15.dp)),
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.Email,
-                            contentDescription = "Email Icon"
-                        )
-                    },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = Color.Black,
-                        focusedLabelColor = Color.Black,
-                        focusedPlaceholderColor = Color.Black,
-                        focusedContainerColor = Color.White,
-                        unfocusedContainerColor = Color.White,
-                        focusedBorderColor = Color.White,
-                        unfocusedBorderColor = Color.White
-                    ),
-                    maxLines = 1
-                )
-
-
-                var passwordVisible by remember { mutableStateOf(false) }
-                passwordStrength = checkPasswordStrength(password)
-                OutlinedTextField(
-                    value = password,
-                    onValueChange = { password = it },
-                    label = { Text("Password") },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(shape = RoundedCornerShape(15.dp)),
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.Lock,
-                            contentDescription = "Password Icon"
-                        )
-                    },
-                    visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                    trailingIcon = {
-                        val image =
-                            if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
-                        IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                            Icon(
-                                imageVector = image,
-                                contentDescription = "Toggle Password Visibility"
-                            )
-                        }
-                    },
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = Color.Black,
-                        focusedLabelColor = Color.Black,
-                        focusedPlaceholderColor = Color.Black,
-                        focusedContainerColor = Color.White,
-                        unfocusedContainerColor = Color.White,
-                        focusedBorderColor = when (passwordStrength) {
-                            PasswordStrength.Strong -> Color.Green
-                            PasswordStrength.Medium -> Color(0xFFFFA500) // Orange
-                            PasswordStrength.Weak -> Color.Red
-                        },
-                        unfocusedBorderColor = Color.White
-                    ),
-                    maxLines = 1
-                )
-
-
-                passwordsMatch = password == confirmPassword
-                OutlinedTextField(
-                    value = confirmPassword,
-                    onValueChange = { confirmPassword = it },
-                    label = { Text("Confirm Password") },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(shape = RoundedCornerShape(15.dp)),
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.Lock,
-                            contentDescription = "Confirm Password Icon"
-                        )
-                    },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                    visualTransformation = PasswordVisualTransformation(),
-                    isError = !passwordsMatch,
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = Color.Black,
-                        focusedLabelColor = Color.Black,
-                        focusedPlaceholderColor = Color.Black,
-                        focusedContainerColor = Color.White,
-                        unfocusedContainerColor = Color.White,
-                        focusedBorderColor = if (passwordsMatch) Color.Green else Color.Red,
-                        unfocusedBorderColor = if (passwordsMatch) Color.Green else Color.Red
-                    ),
-                    maxLines = 1
-                )
-                if (!passwordsMatch) {
-                    Text(
-                        text = "Passwords do not match",
-                        color = Color.Red,
-                        modifier = Modifier.padding(top = 4.dp)
+            OutlinedTextField(
+                value = email,
+                onValueChange = { email = it },
+                label = { Text("Email") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(shape = RoundedCornerShape(15.dp)),
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Default.Email,
+                        contentDescription = "Email Icon"
                     )
-                }
+                },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedTextColor = Color.Black,
+                    focusedLabelColor = Color.Black,
+                    focusedPlaceholderColor = Color.Black,
+                    focusedContainerColor = Color.White,
+                    unfocusedContainerColor = Color.White,
+                    focusedBorderColor = Color.White,
+                    unfocusedBorderColor = Color.White
+                ),
+                maxLines = 1
+            )
+
+
+            var passwordVisible by remember { mutableStateOf(false) }
+            passwordStrength = checkPasswordStrength(password)
+            OutlinedTextField(
+                value = password,
+                onValueChange = { password = it },
+                label = { Text("Password") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(shape = RoundedCornerShape(15.dp)),
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Default.Lock,
+                        contentDescription = "Password Icon"
+                    )
+                },
+                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                trailingIcon = {
+                    val image =
+                        if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
+                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                        Icon(
+                            imageVector = image,
+                            contentDescription = "Toggle Password Visibility"
+                        )
+                    }
+                },
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedTextColor = Color.Black,
+                    focusedLabelColor = Color.Black,
+                    focusedPlaceholderColor = Color.Black,
+                    focusedContainerColor = Color.White,
+                    unfocusedContainerColor = Color.White,
+                    focusedBorderColor = when (passwordStrength) {
+                        PasswordStrength.Strong -> Color.Green
+                        PasswordStrength.Medium -> Color(0xFFFFA500) // Orange
+                        PasswordStrength.Weak -> Color.Red
+                    },
+                    unfocusedBorderColor = Color.White
+                ),
+                maxLines = 1
+            )
+
+
+            passwordsMatch = password == confirmPassword
+            OutlinedTextField(
+                value = confirmPassword,
+                onValueChange = { confirmPassword = it },
+                label = { Text("Confirm Password") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(shape = RoundedCornerShape(15.dp)),
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Default.Lock,
+                        contentDescription = "Confirm Password Icon"
+                    )
+                },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                visualTransformation = PasswordVisualTransformation(),
+                isError = !passwordsMatch,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedTextColor = Color.Black,
+                    focusedLabelColor = Color.Black,
+                    focusedPlaceholderColor = Color.Black,
+                    focusedContainerColor = Color.White,
+                    unfocusedContainerColor = Color.White,
+                    focusedBorderColor = if (passwordsMatch) Color.Green else Color.Red,
+                    unfocusedBorderColor = if (passwordsMatch) Color.Green else Color.Red
+                ),
+                maxLines = 1
+            )
+            if (!passwordsMatch) {
+                Text(
+                    text = "Passwords do not match",
+                    color = Color.Red,
+                    modifier = Modifier.padding(top = 4.dp)
+                )
+            }
 
 
             ExposedDropdownMenuBox(
@@ -323,29 +318,29 @@ fun SignUpScreen(navController: NavController, authViewModel: AuthViewModel, use
 
 
             OutlinedTextField(
-                    value = name,
-                    onValueChange = { name = it },
-                    label = { Text("Full Name") },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(shape = RoundedCornerShape(15.dp)),
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.Person,
-                            contentDescription = "Name Icon"
-                        )
-                    },
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = Color.Black,
-                        focusedLabelColor = Color.Black,
-                        focusedPlaceholderColor = Color.Black,
-                        focusedContainerColor = Color.White,
-                        unfocusedContainerColor = Color.White,
-                        focusedBorderColor = Color.White,
-                        unfocusedBorderColor = Color.White
-                    ),
-                    maxLines = 1
-                )
+                value = name,
+                onValueChange = { name = it },
+                label = { Text("Full Name") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(shape = RoundedCornerShape(15.dp)),
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Default.Person,
+                        contentDescription = "Name Icon"
+                    )
+                },
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedTextColor = Color.Black,
+                    focusedLabelColor = Color.Black,
+                    focusedPlaceholderColor = Color.Black,
+                    focusedContainerColor = Color.White,
+                    unfocusedContainerColor = Color.White,
+                    focusedBorderColor = Color.White,
+                    unfocusedBorderColor = Color.White
+                ),
+                maxLines = 1
+            )
 
 
             ExposedDropdownMenuBox(
@@ -390,31 +385,31 @@ fun SignUpScreen(navController: NavController, authViewModel: AuthViewModel, use
                 }
             }
 
-                OutlinedTextField(
-                    value = phone,
-                    onValueChange = { phone = it },
-                    label = { Text("Phone Number") },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(shape = RoundedCornerShape(15.dp)),
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.Phone,
-                            contentDescription = "Phone Icon"
-                        )
-                    },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = Color.Black,
-                        focusedLabelColor = Color.Black,
-                        focusedPlaceholderColor = Color.Black,
-                        focusedContainerColor = Color.White,
-                        unfocusedContainerColor = Color.White,
-                        focusedBorderColor = Color.White,
-                        unfocusedBorderColor = Color.White
-                    ),
-                    maxLines = 1
-                )
+            OutlinedTextField(
+                value = phone,
+                onValueChange = { phone = it },
+                label = { Text("Phone Number") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(shape = RoundedCornerShape(15.dp)),
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Default.Phone,
+                        contentDescription = "Phone Icon"
+                    )
+                },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedTextColor = Color.Black,
+                    focusedLabelColor = Color.Black,
+                    focusedPlaceholderColor = Color.Black,
+                    focusedContainerColor = Color.White,
+                    unfocusedContainerColor = Color.White,
+                    focusedBorderColor = Color.White,
+                    unfocusedBorderColor = Color.White
+                ),
+                maxLines = 1
+            )
 
 
             ElevatedButton(
@@ -425,7 +420,7 @@ fun SignUpScreen(navController: NavController, authViewModel: AuthViewModel, use
                             email,
                             password,
                             confirmPassword,
-                            name,
+                            fullName,
                             phone,
                             selectedRole,
                             fullName
@@ -449,5 +444,3 @@ fun SignUpScreen(navController: NavController, authViewModel: AuthViewModel, use
 enum class PasswordStrength {
     Weak, Medium, Strong
 }
-
-// Suspend function to generate a unique patient ID

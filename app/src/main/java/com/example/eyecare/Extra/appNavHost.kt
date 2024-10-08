@@ -55,7 +55,9 @@ fun AppNavHost(authViewModel: AuthViewModel) {
 
         composable("signup/{userId}") { backStackEntry ->
             val userId = backStackEntry.arguments?.getString("userId")
-            SignUpScreen(navController = navController,  authViewModel, userId = userId)
+            if (userId != null) {
+                SignUpScreen(navController = navController,  authViewModel, userId = userId)
+            }
         }
 
         composable("patientDetails/{patientId}") { backStackEntry ->
