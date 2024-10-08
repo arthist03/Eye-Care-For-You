@@ -311,6 +311,14 @@ fun PatientDetailsScreen(navController: NavController, patientId: String?) {
                         Text(text = "Other")
                     }
 
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    ElevatedButton(
+                        onClick = { imageCaptureLauncher.launch() },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Capture Image")
+                    }
 
                     Spacer(modifier = Modifier.height(12.dp))
 
@@ -326,12 +334,10 @@ fun PatientDetailsScreen(navController: NavController, patientId: String?) {
                                 .background(Color.White)
                         )
                     } else {
-                        ElevatedButton(
-                            onClick = { imageCaptureLauncher.launch() },
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text("Capture Image")
-                        }
+                        Text(
+                            text = "No profile image selected",
+                            modifier = Modifier.padding(8.dp)
+                        )
                     }
 
                     Spacer(modifier = Modifier.height(12.dp))
