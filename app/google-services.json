@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "100122479471",
+    "project_id": "eyecare-for-you",
+    "storage_bucket": "eyecare-for-you.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:100122479471:android:611f611e5c5d179963369a",
+        "android_client_info": {
+          "package_name": "com.example.eyecare"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCvvIQ2Bp9FoxDMT6nQ96ffu6GRp74Lh7Q"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

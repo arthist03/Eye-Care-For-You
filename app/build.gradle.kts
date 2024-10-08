@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
+    alias(libs.plugins.google.gms.google.services)
 }
 
 android {
@@ -9,7 +10,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.eyecare"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
@@ -29,37 +30,63 @@ android {
             )
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
     }
+
     kotlinOptions {
         jvmTarget = "1.8"
     }
+
     buildFeatures {
         compose = true
     }
+
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.1"
     }
+
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            excludes += "/META-INF/versions/9/OSGI-INF/MANIFEST.MF"
+            excludes += "/META-INF/DEPENDENCIES"
+            excludes += "/META-INF/LICENSE"
+            excludes += "/META-INF/LICENSE.txt"
+            excludes += "/META-INF/NOTICE"
+            excludes += "/META-INF/NOTICE.txt"
+            excludes += "/META-INF/DEPENDENCIES.txt"
         }
     }
 }
 
 dependencies {
-
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
+    implementation(libs.pdfbox)
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation(libs.androidx.graphics.shapes.android)
+    implementation(libs.firebase.auth)
+    implementation(libs.firebase.firestore)
+    implementation(libs.firebase.database)
+    implementation(libs.androidx.leanback)
+    implementation(libs.androidx.navigation.runtime.ktx)
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.runtime.livedata)
+    implementation(libs.identity.jvm)
+    implementation(libs.places)
+    implementation(libs.coil.compose)
+    implementation(libs.androidx.glance)
+    implementation(libs.material.icons.extended)
+    implementation(libs.firebase.crashlytics.buildtools)
+    implementation(libs.firebase.storage.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -67,4 +94,45 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+
+    implementation("org.bouncycastle:bcprov-jdk18on:1.78.1") {
+        exclude(group = "org.bouncycastle", module = "bcprov-jdk15on")
+    }
+
+    // CameraX dependencies
+    implementation(libs.androidx.camera.core)
+    implementation(libs.androidx.camera.camera2)
+    implementation(libs.androidx.camera.lifecycle)
+    implementation(libs.androidx.camera.view)
+
+    // Text Recognition dependencies
+    implementation(libs.text.recognition)
+    implementation(libs.play.services.mlkit.text.recognition)
+
+    // Retrofit dependencies
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)
+
+    // Gson and Coroutine dependencies
+    implementation(libs.gson)
+    implementation(libs.kotlinx.coroutines.android)
+
+    // Additional dependencies
+    implementation(libs.androidx.activity.ktx)
+    implementation(libs.androidx.navigation.compose.v240)
+    implementation(libs.firebase.auth.ktx)
+    implementation(libs.firebase.firestore.ktx)
+    implementation(libs.androidx.camera.camera2.v110alpha11)
+    implementation(libs.androidx.camera.lifecycle.v110alpha11)
+    implementation(libs.androidx.camera.view.v100alpha31)
+    implementation(libs.androidx.ui.v105)
+    implementation(libs.androidx.ui.v100)
+
+    // Suppressing Gradle warnings for certain dependencies
+    //noinspection UseTomlInstead
+    implementation(libs.androidx.material)
+    //noinspection UseTomlInstead,GradleDependency
+    implementation("androidx.compose.ui:ui-tooling:1.7.3")
+    implementation ("com.google.guava:guava:32.1.3-android")
+
 }
