@@ -110,7 +110,7 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel) {
         when (authState.value) {
             is AuthState.RedirectToHOD -> {
                 Toast.makeText(context, "Redirecting to HOD Screen", Toast.LENGTH_SHORT).show()
-                navController.navigate("hodScreen") {
+                navController.navigate("hodPatients") {
                     popUpTo("login") { inclusive = true }
                 }
             }
