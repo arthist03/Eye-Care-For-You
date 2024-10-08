@@ -407,11 +407,6 @@ fun withoutGlassOpto(navController: NavController, patientId: String) {
 
 
 
-
-
-
-
-
 fun saveOptoData(
     db: FirebaseFirestore,
     patientId: String,
@@ -430,7 +425,8 @@ fun saveOptoData(
     context: Context,
     screenType: String // To differentiate between screens
 ) {
-    val currentDate = SimpleDateFormat("dd_MM_yyyy", Locale.getDefault()).format(Date())
+    // Fetch the visiting date dynamically
+    val visitingDate = SimpleDateFormat("dd_MM_yyyy", Locale.getDefault()).format(Date()) // Current date in dd_MM_yyyy format
 
     // Create a map for examination details
     val examinationDetails = hashMapOf<String, Any>(
@@ -448,36 +444,30 @@ fun saveOptoData(
         "Snellen Right" to snellenRight,
         "Snellen Right Near" to snellenRightN,
         "Screen Type" to screenType,
-        "Date" to currentDate
+        "Date" to visitingDate // Use visitingDate
     )
 
-    // Create or update the visit document with the visited date
+    // Save the data in the following structure:
+    // patients -> patientId -> visits -> visitingDate -> screenType -> visitingDate -> data
     db.collection("patients").document(patientId)
         .collection("visits")
-        .document(currentDate) // Document represents the visited date
-        .set(hashMapOf("Date" to currentDate), SetOptions.merge()) // Store the date (merge if exists)
+        .document(visitingDate) // Document represents the visiting date
+        .collection(screenType) // Sub-collection for the screen type (withGlassOpto, withoutGlassOpto, etc.)
+        .document(visitingDate) // Document for the visiting date within the screen type collection
+        .set(examinationDetails, SetOptions.merge()) // Merge the data into the document
         .addOnSuccessListener {
-            // Now add or update the examination details under the screenType collection
-            db.collection("patients").document(patientId)
-                .collection("visits")
-                .document(currentDate)
-                .collection(screenType) // Use screenType as sub-collection name
-                .document(currentDate) // Use a fixed document name such as "data"
-                .set(examinationDetails, SetOptions.merge()) // Merge the data into the document
-                .addOnSuccessListener {
-                    // Only assign doctor if screenType is "New Prescription"
-                    if (screenType == "newGlassOpto") {
-                        assignDoctorIfNeeded(db, patientId, currentDate, context)
-                    }
-                }
-                .addOnFailureListener { exception ->
-                    Toast.makeText(context, "Failed to save data: ${exception.message}", Toast.LENGTH_SHORT).show()
-                }
+            // Only assign doctor if screenType is "newGlassOpto"
+            if (screenType == "newGlassOpto") {
+                assignDoctorIfNeeded(db, patientId, visitingDate, context)
+            }
+            Toast.makeText(context, "Data saved successfully", Toast.LENGTH_SHORT).show()
         }
         .addOnFailureListener { exception ->
-            Toast.makeText(context, "Failed to create visit document: ${exception.message}", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "Failed to save data: ${exception.message}", Toast.LENGTH_SHORT).show()
         }
 }
+
+
 
 private fun assignDoctorIfNeeded(
     db: FirebaseFirestore,

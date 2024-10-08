@@ -58,6 +58,8 @@ fun newGlassOpto(navController: NavController, patientId: String) {
     var snellenRightN by remember { mutableStateOf(6f) }
     var isCylindricalLens by remember {mutableStateOf(false)}
 
+    var visitingDate by remember { mutableStateOf("") }
+
     LaunchedEffect(patientId) {
         // Fetch patient details
         db.collection("patients").document(patientId).get()
@@ -76,12 +78,12 @@ fun newGlassOpto(navController: NavController, patientId: String) {
 
                                 // Fetching the formatted visiting date
                                 val formattedVisitingDate = firstVisitDocument.id
-                                val visitingDate = formattedVisitingDate // Assuming both formats are now aligned
+                                visitingDate = formattedVisitingDate // Assuming both formats are now aligned
 
                                 // Log/Toast for debugging
                                 Toast.makeText(context, "Fetching Visit Date: $formattedVisitingDate", Toast.LENGTH_LONG).show()
 
-                                // Fetch optometric data for the visit date
+                                // Fetch the optometric data for the visit date
                                 fetchVisitingDate(patientId, visitingDate, db, { visitingDateResult ->
                                     patientDetails = patientDetails?.copy(visitingDate = visitingDateResult)
 
@@ -130,6 +132,7 @@ fun newGlassOpto(navController: NavController, patientId: String) {
                             errorMessage = "Failed to fetch visit dates: ${exception.message}"
                             isLoading = false
                         }
+
                 } else {
                     errorMessage = "Patient not found"
                     isLoading = false
@@ -386,7 +389,12 @@ fun newGlassOpto(navController: NavController, patientId: String) {
                                             context = context,
                                             screenType = "newGlassOpto"
                                         )
+<<<<<<< HEAD
+                                        navController.navigate("PreviewScreen/$patientId") // Ensure patientId is being passed correctly
+
+=======
                                         navController.navigate("OptoCheckupScreen/patientId")
+>>>>>>> cb78ff2fe5d04270eb7f115e2e069312b9c172dd
 
                                     }) {
                                         Text(text = "Save Examination")

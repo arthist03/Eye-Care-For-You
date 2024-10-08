@@ -11,8 +11,12 @@ import com.example.eyecare.Doctor.docGlassScreens.withoutGlassDoc
 import com.example.eyecare.Doctor.doctorcatalog
 import com.example.eyecare.Doctor.offlineScreens.offlinScreen
 import com.example.eyecare.HOD.hodcatalog
+import com.example.eyecare.Opto.ExaminationDetailsScreen
 import com.example.eyecare.Opto.PatientCatalogPage
+<<<<<<< HEAD
+=======
 import com.example.eyecare.Opto.glassScreens.OptoCheckupScreen
+>>>>>>> cb78ff2fe5d04270eb7f115e2e069312b9c172dd
 import com.example.eyecare.Opto.glassScreens.newGlassOpto
 import com.example.eyecare.Opto.glassScreens.withGlassOpto
 import com.example.eyecare.Opto.glassScreens.withoutGlassOpto
@@ -90,8 +94,15 @@ fun AppNavHost(authViewModel: AuthViewModel) {
             newGlassDoc(navController = navController, patientId = patientId)
         }
 
+<<<<<<< HEAD
+        composable("PreviewScreen/{patientId}") { backStackEntry ->
+            val patientId = backStackEntry.arguments?.getString("patientId") ?: ""
+            ExaminationDetailsScreen(navController = navController, patientId = patientId)
+        }
+=======
 
 
+>>>>>>> cb78ff2fe5d04270eb7f115e2e069312b9c172dd
 
 
     }
