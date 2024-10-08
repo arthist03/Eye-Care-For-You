@@ -95,28 +95,22 @@ fun PatientDetailsScreen(navController: NavController, patientId: String?) {
 
     LaunchedEffect(patientId) {
         val patientDocRef = db.collection("patients").document(patientId ?: "")
-
-        patientDocRef.get().addOnSuccessListener { document ->
+        try {
+            val document = patientDocRef.get().await()
             if (document.exists()) {
                 name = TextFieldValue(document.getString("name") ?: "")
                 address = TextFieldValue(document.getString("address") ?: "")
                 phone = TextFieldValue(document.getString("phone") ?: "")
                 selectedGender = document.getString("gender") ?: "Male"
-
-                // Fetch and set the date of birth if it exists
-                val dobString = document.getString("dateOfBirth")
-                if (!dobString.isNullOrEmpty()) {
-                    val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
-                    val dob = LocalDate.parse(dobString, formatter)
-                    dateOfBirth = dob // assuming selectedDateOfBirth is a LocalDate
-                }
             } else {
                 Toast.makeText(context, "Patient not found", Toast.LENGTH_LONG).show()
             }
-        }.addOnFailureListener {
-            Toast.makeText(context, "Failed to fetch patient details", Toast.LENGTH_LONG).show()
+        } catch (e: Exception) {
+            Toast.makeText(context, "Error fetching patient details: ${e.message}", Toast.LENGTH_LONG).show()
+            Log.e("PatientDetailsScreen", "Failed to fetch patient details", e)
         }
     }
+
 
 
 
